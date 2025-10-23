@@ -14,32 +14,32 @@ const FuelStationForm = () => {
         <div className="bg-white rounded-2xl shadow-xl p-8 mb-8 border border-gray-100">
           <div className="flex items-center justify-between flex-wrap">
             {/* Left side */}
-    <div className="flex flex-col items-center text-center md:flex-row md:items-center md:text-left">
-  {/* Icon container - centered on mobile, to the left on desktop */}
-  <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-md mb-4 md:mb-0 md:mr-6">
-    <Fuel className="w-8 h-8 md:w-8 md:h-8 text-white" />
-  </div>
+            <div className="flex flex-col items-center text-center md:flex-row md:items-center md:text-left">
+              {/* Icon container - centered on mobile, to the left on desktop */}
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl flex items-center justify-center shadow-md mb-4 md:mb-0 md:mr-6">
+                <Fuel className="w-8 h-8 md:w-8 md:h-8 text-white" />
+              </div>
 
-  {/* Text content */}
-  <div>
-    <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Ashish Patel</h1>
-    
-    {/* Building info - icon above on mobile, inline on desktop */}
-    <div className="flex flex-col items-center mt-1 md:flex-row md:items-center text-gray-600">
-      <div className="mb-1 md:mb-0 md:mr-2 flex justify-center">
-        <Building className="w-5 h-5 md:w-4 md:h-4 text-blue-600" />
-      </div>
-      <span className="text-sm md:text-base text-center md:text-left">
-        Retail Outlet: South Nagpur ABCD Petrol Pump
-      </span>
-    </div>
-  </div>
-</div>
+              {/* Text content */}
+              <div>
+                <h1 className="text-2xl md:text-3xl font-bold text-gray-900">Ashish Patel</h1>
+
+                {/* Building info - icon above on mobile, inline on desktop */}
+                <div className="flex flex-col items-center mt-1 md:flex-row md:items-center text-gray-600">
+                  <div className="mb-1 md:mb-0 md:mr-2 flex justify-center">
+                    <Building className="w-5 h-5 md:w-4 md:h-4 text-blue-600" />
+                  </div>
+                  <span className="text-sm md:text-base text-center md:text-left">
+                    Retail Outlet: South Nagpur ABCD Petrol Pump
+                  </span>
+                </div>
+              </div>
+            </div>
 
             {/* Active session badge */}
             <div className="w-full flex justify-center md:justify-end mt-4">
               <div className="flex items-center px-5 py-2 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-full shadow-md
-                  md:absolute md:top-20 md:right-14 z-50">
+                  md:absolute md:top-30 md:right-14 ">
                 <Activity className="w-4 h-4 mr-2" />
                 <span className="font-semibold">Data Entry Session Active</span>
               </div>
