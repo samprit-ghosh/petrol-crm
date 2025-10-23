@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 
 /* Simple custom hook: can be replaced with real fetch logic */
 function useZones(initialData = null) {
@@ -10,40 +11,51 @@ function useZones(initialData = null) {
     if (initialData) return;
     let mounted = true;
     setLoading(true);
-    // simulate fetch
     setTimeout(() => {
       if (!mounted) return;
       setZones({
         east: [
           { id: 1, name: "Downtown Mall", status: "active" },
           { id: 2, name: "Riverside Plaza", status: "active" },
-          { id: 3, name: "Eastgate Center", status: "active" }
+          { id: 3, name: "Eastgate Center", status: "active" },
+          { id: 4, name: "Central Plaza", status: "active" },
+          { id: 5, name: "Hilltop Market", status: "inactive" }
         ],
         west: [
-          { id: 4, name: "Westwood Mall", status: "active" },
-          { id: 5, name: "Mountain View", status: "active" },
-          { id: 6, name: "Sunset Plaza", status: "inactive" }
+          { id: 6, name: "Westwood Mall", status: "active" },
+          { id: 7, name: "Mountain View", status: "active" },
+          { id: 8, name: "Sunset Plaza", status: "inactive" }
         ],
         north: [
-          { id: 7, name: "North Point Mall", status: "active" },
-          { id: 8, name: "Highland Park", status: "active" },
-          { id: 9, name: "Pine Valley", status: "active" }
+          { id: 9, name: "North Point Mall", status: "active" },
+          { id: 10, name: "Highland Park", status: "active" },
+          { id: 11, name: "Pine Valley", status: "active" },
+          { id: 12, name: "Evergreen Plaza", status: "inactive" }
         ],
         south: [
-          { id: 10, name: "Southside Center", status: "active" },
-          { id: 11, name: "Bayview Plaza", status: "active" },
-          { id: 12, name: "Palm Grove", status: "inactive" }
+          { id: 13, name: "Southside Center", status: "active" },
+          { id: 14, name: "Bayview Plaza", status: "active" },
+          { id: 15, name: "Palm Grove", status: "inactive" }
         ]
       });
       setLoading(false);
     }, 400);
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [initialData]);
 
   return { zones, setZones, loading, error };
 }
 
-/* Presentational: accessible select */
+/* Zone selector with hardcoded icons */
+const zoneIcons = {
+  east: "🌅",
+  west: "🌄",
+  north: "❄️",
+  south: "🌴"
+};
+
 const ZoneSelector = ({ value, onChange, zones }) => {
   return (
     <label className="flex items-center gap-2">
@@ -56,7 +68,7 @@ const ZoneSelector = ({ value, onChange, zones }) => {
       >
         {Object.keys(zones).map((z) => (
           <option key={z} value={z}>
-            {z[0].toUpperCase() + z.slice(1)} Zone
+            {zoneIcons[z]} {z[0].toUpperCase() + z.slice(1)} Zone
           </option>
         ))}
       </select>
@@ -64,18 +76,23 @@ const ZoneSelector = ({ value, onChange, zones }) => {
   );
 };
 
-/* Presentational: single outlet row */
+/* Outlet item with hardcoded icon */
 const OutletItem = React.memo(({ outlet }) => {
   const statusClasses =
     outlet.status === "active"
       ? "bg-green-100 text-green-800 border border-green-200"
       : "bg-red-100 text-red-800 border border-red-200";
 
+  const outletIcon = "🏬"; // Hardcoded building icon for all outlets
+
   return (
     <div className="flex items-center justify-between p-3 bg-white rounded-lg shadow-sm border border-gray-100 hover:bg-gray-50 transition-colors duration-200">
-      <span className="text-base font-medium text-gray-800 truncate flex-1" title={outlet.name}>
-        {outlet.name}
-      </span>
+      <div className="flex items-center gap-2 flex-1 truncate">
+        <span className="text-lg">{outletIcon}</span>
+        <span className="text-base font-medium text-gray-800 truncate" title={outlet.name}>
+          {outlet.name}
+        </span>
+      </div>
       <span className={`px-3 py-1 rounded-full text-sm font-medium ${statusClasses}`}>
         {outlet.status === "active" ? "Active" : "Inactive"}
       </span>
@@ -83,7 +100,7 @@ const OutletItem = React.memo(({ outlet }) => {
   );
 });
 
-/* Presentational list with empty state */
+/* List with empty state */
 const OutletList = ({ outlets }) => {
   if (!outlets || outlets.length === 0) {
     return (
@@ -102,25 +119,82 @@ const OutletList = ({ outlets }) => {
   );
 };
 
-/* Container component */
+/* Pagination controls */
+const Pagination = ({ currentPage, totalPages, onPageChange }) => (
+  <div className="flex items-center justify-between border-t border-gray-200 pt-6 mt-4">
+    <div className="text-sm text-gray-700">
+      Page {currentPage} of {totalPages}
+    </div>
+    <div className="flex items-center space-x-2">
+      <button
+        onClick={() => onPageChange(currentPage - 1)}
+        disabled={currentPage === 1}
+        className={`px-3 py-1 border rounded-lg text-sm font-medium ${
+          currentPage === 1
+            ? "text-gray-400 border-gray-200 cursor-not-allowed"
+            : "text-blue-600 border-gray-300 hover:bg-blue-50"
+        }`}
+      >
+        Prev
+      </button>
+      <button
+        onClick={() => onPageChange(currentPage + 1)}
+        disabled={currentPage === totalPages}
+        className={`px-3 py-1 border rounded-lg text-sm font-medium ${
+          currentPage === totalPages
+            ? "text-gray-400 border-gray-200 cursor-not-allowed"
+            : "text-blue-600 border-gray-300 hover:bg-blue-50"
+        }`}
+      >
+        Next
+      </button>
+    </div>
+  </div>
+);
+
+/* Main component */
 const CompactZoneView = ({ initialZones = null }) => {
   const { zones, loading } = useZones(initialZones);
+  const navigate = useNavigate();
+
   const defaultZone = useMemo(() => (zones ? Object.keys(zones)[0] : "east"), [zones]);
   const [selectedZone, setSelectedZone] = useState(defaultZone);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 2;
 
   useEffect(() => {
     if (zones && !zones[selectedZone]) {
-      // if selected zone disappears, pick the first available
       setSelectedZone(Object.keys(zones)[0]);
     }
   }, [zones, selectedZone]);
 
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedZone]);
+
   const outlets = useMemo(() => (zones ? zones[selectedZone] || [] : []), [zones, selectedZone]);
+  const totalPages = Math.ceil(outlets.length / itemsPerPage);
+  const paginatedOutlets = useMemo(() => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    return outlets.slice(startIndex, startIndex + itemsPerPage);
+  }, [outlets, currentPage]);
+
+  const handlePageChange = (page) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  const handleNavigate = (path) => {
+    navigate(path);
+  };
 
   return (
     <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 w-full mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6">
-        <h2 className="text-xl font-bold text-gray-900 mb-2 sm:mb-0">Zone Outlets</h2>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
+        <h2 className="text-xl font-bold text-gray-900 mb-2 sm:mb-0 flex items-center gap-2">
+          {zoneIcons[selectedZone]} Zone Outlets
+        </h2>
         {loading ? (
           <div className="text-base text-gray-500">Loading zones...</div>
         ) : (
@@ -130,10 +204,10 @@ const CompactZoneView = ({ initialZones = null }) => {
 
       <div className="mb-2">
         <h3 className="text-lg font-semibold text-gray-800 capitalize mb-1">
-          {selectedZone} Zone
+          {zoneIcons[selectedZone]} {selectedZone} Zone
         </h3>
         <div className="text-sm text-gray-500 mb-4">
-          {outlets.length} outlet{outlets.length !== 1 ? 's' : ''} in this zone
+          {outlets.length} outlet{outlets.length !== 1 ? "s" : ""} in this zone
         </div>
       </div>
 
@@ -143,18 +217,22 @@ const CompactZoneView = ({ initialZones = null }) => {
           <div className="mt-2 text-sm text-gray-400">Please wait a moment</div>
         </div>
       ) : (
-        <OutletList outlets={outlets} />
+        <>
+          <OutletList outlets={paginatedOutlets} />
+          {outlets.length > 3 && (
+            <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={handlePageChange} />
+          )}
+        </>
       )}
 
       <button
         type="button"
         className="w-full mt-6 text-base font-medium text-blue-600 hover:text-blue-800 py-3 border border-gray-300 rounded-lg hover:bg-blue-50 transition-colors duration-200 flex items-center justify-center gap-2"
-        aria-label="View all outlets"
+        aria-label="Manage all outlets"
+        onClick={() => handleNavigate("/zone")}
       >
-        <span>View All Outlets</span>
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
+        <span>Manage All Outlets</span>
+        <span>➡️</span>
       </button>
     </div>
   );

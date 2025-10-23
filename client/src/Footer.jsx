@@ -4,14 +4,14 @@ import { Github, Linkedin, Mail } from "lucide-react";
 export default function Footer() {
   return (
     <footer className="w-full bg-gradient-to-r from-emerald-600 via-emerald-500 to-indigo-600 text-white mt-12">
-      <div className="max-w-7xl mx-auto px-6 py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-8 sm:py-12">
         {/* Main footer content */}
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-12">
+        <div className="flex flex-col lg:flex-row items-start justify-between gap-8 lg:gap-12">
           
           {/* Left Section - Brand Info */}
-          <div className="flex items-start md:items-center gap-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 w-full lg:w-auto">
             <div
-              className="flex items-center justify-center w-12 h-12 rounded-lg bg-white/20 ring-1 ring-white/20 shadow-sm"
+              className="flex items-center justify-center w-12 h-12 rounded-lg bg-white/20 ring-1 ring-white/20 shadow-sm flex-shrink-0"
               aria-hidden
             >
               <svg
@@ -37,7 +37,7 @@ export default function Footer() {
               </svg>
             </div>
 
-            <div>
+            <div className="flex-1">
               <h3 className="text-lg font-semibold tracking-tight">
                 Fuel Station Tracker
               </h3>
@@ -52,40 +52,40 @@ export default function Footer() {
           </div>
 
           {/* Middle Section - Links */}
-          <div className="flex flex-col sm:flex-row gap-8 text-sm">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 sm:gap-8 w-full lg:w-auto">
             <div>
-              <h4 className="font-medium text-white/95 mb-2">Product</h4>
-              <ul className="space-y-1 text-white/90">
-                <li><a href="#" className="hover:text-white transition-colors">Features</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Pricing</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Integrations</a></li>
+              <h4 className="font-medium text-white/95 mb-3 text-sm sm:text-base">Product</h4>
+              <ul className="space-y-2 text-white/90 text-xs sm:text-sm">
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Features</a></li>
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Pricing</a></li>
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Integrations</a></li>
               </ul>
             </div>
 
             <div>
-              <h4 className="font-medium text-white/95 mb-2">Company</h4>
-              <ul className="space-y-1 text-white/90">
-                <li><a href="#" className="hover:text-white transition-colors">About</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Careers</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Contact</a></li>
+              <h4 className="font-medium text-white/95 mb-3 text-sm sm:text-base">Company</h4>
+              <ul className="space-y-2 text-white/90 text-xs sm:text-sm">
+                <li><a href="#" className="hover:text-white transition-colors block py-1">About</a></li>
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Careers</a></li>
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Contact</a></li>
               </ul>
             </div>
 
-            <div>
-              <h4 className="font-medium text-white/95 mb-2">Legal</h4>
-              <ul className="space-y-1 text-white/90">
-                <li><a href="#" className="hover:text-white transition-colors">Privacy Policy</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Terms of Service</a></li>
-                <li><a href="#" className="hover:text-white transition-colors">Support</a></li>
+            <div className="col-span-2 sm:col-span-1">
+              <h4 className="font-medium text-white/95 mb-3 text-sm sm:text-base">Legal</h4>
+              <ul className="space-y-2 text-white/90 text-xs sm:text-sm">
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Privacy Policy</a></li>
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Terms of Service</a></li>
+                <li><a href="#" className="hover:text-white transition-colors block py-1">Support</a></li>
               </ul>
             </div>
           </div>
 
           {/* Right Section - Newsletter & Social */}
-          <div className="flex flex-col items-start gap-4 w-full md:w-auto">
+          <div className="flex flex-col items-start gap-4 w-full lg:w-auto">
             <form
               onSubmit={(e) => e.preventDefault()}
-              className="flex items-center gap-2 bg-white/10 rounded-md px-2 py-1 w-full md:w-auto"
+              className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 bg-white/10 rounded-md px-3 py-2 w-full"
               aria-label="Subscribe form"
             >
               <label htmlFor="footer-email" className="sr-only">Email</label>
@@ -93,24 +93,25 @@ export default function Footer() {
                 id="footer-email"
                 type="email"
                 placeholder="Your email"
-                className="bg-transparent placeholder-white/70 text-white text-sm outline-none px-2 py-2 flex-1"
+                required
+                className="bg-transparent placeholder-white/70 text-white text-sm outline-none py-2 flex-1 min-w-0"
               />
               <button
                 type="submit"
-                className="bg-white text-emerald-600 px-3 py-2 rounded-md text-sm font-medium hover:opacity-95 transition"
+                className="bg-white text-emerald-600 px-4 py-2 rounded-md text-sm font-medium hover:opacity-95 transition whitespace-nowrap"
               >
-                Join
+                Subscribe
               </button>
             </form>
 
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-3 w-full justify-center sm:justify-start">
               <a
                 href="mailto:support@fueltracker.com"
                 aria-label="Email"
                 title="Email"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition transform hover:-translate-y-0.5"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition transform hover:-translate-y-0.5"
               >
-                <Mail className="w-4 h-4 text-white/95" />
+                <Mail className="w-5 h-5 text-white/95" />
               </a>
 
               <a
@@ -119,9 +120,9 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 aria-label="GitHub"
                 title="GitHub"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition transform hover:-translate-y-0.5"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition transform hover:-translate-y-0.5"
               >
-                <Github className="w-4 h-4 text-white/95" />
+                <Github className="w-5 h-5 text-white/95" />
               </a>
 
               <a
@@ -130,17 +131,17 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 aria-label="LinkedIn"
                 title="LinkedIn"
-                className="w-9 h-9 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition transform hover:-translate-y-0.5"
+                className="w-10 h-10 flex items-center justify-center rounded-full bg-white/10 hover:bg-white/20 transition transform hover:-translate-y-0.5"
               >
-                <Linkedin className="w-4 h-4 text-white/95" />
+                <Linkedin className="w-5 h-5 text-white/95" />
               </a>
             </div>
           </div>
         </div>
 
         {/* Bottom Section */}
-        <div className="mt-10 border-t border-white/10 pt-6 text-xs text-white/80 flex flex-col sm:flex-row gap-3 justify-between">
-          <span>Built with ❤️ for reliable station operations.</span>
+        <div className="mt-8 sm:mt-10 border-t border-white/10 pt-6 text-xs text-white/80 flex flex-col sm:flex-row gap-3 justify-between items-center">
+          <span className="text-center sm:text-left">Built with ❤️ for reliable station operations.</span>
           <span className="text-white/70">Version 1.0.0</span>
         </div>
       </div>

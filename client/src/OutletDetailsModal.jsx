@@ -32,7 +32,7 @@ const Dashboard = () => {
 
   const quickActions = [
     { label: 'Zonal Management', icon: '👥', description: 'Manage all system users', path: '/zone' },
-    { label: 'User Management', icon: '💾', description: 'Handle outlet data entries', path: '/user-management' },
+    { label: 'User Management', icon: '💾', description: 'Handle outlet data entries', path: '/usermanagement' },
     { label: 'System Reports', icon: '📈', description: 'View analytics and reports', path: '/system-reports' },
   ];
 
@@ -99,8 +99,6 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
-
-        {/* Quick Actions */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -131,6 +129,10 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
+        <Grapgh/>
+
+        {/* Quick Actions */}
+
 
         {/* Statistics Grid */}
      
@@ -171,7 +173,7 @@ const Dashboard = () => {
 
         {/* Role Distribution */}
   
-<Grapgh/>
+
 
 <UserManagement/>
         {/* Role Permissions */}

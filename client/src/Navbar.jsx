@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   Menu,
   X,
@@ -7,17 +8,25 @@ import {
   BarChart3,
   Settings,
   LogOut,
-  User
 } from "lucide-react";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleNavigate = (path) => {
+    navigate(path);
+    setMenuOpen(false); // close mobile menu after navigation
+  };
 
   return (
     <header className="w-full bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
         {/* Left: Logo + Brand */}
-        <div className="flex items-center gap-2">
+        <div
+          className="flex items-center gap-2 cursor-pointer"
+          onClick={() => handleNavigate("/")}
+        >
           <div className="p-2 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 shadow-sm">
             <LayoutDashboard className="w-5 h-5 text-white" />
           </div>
@@ -28,31 +37,45 @@ export default function Navbar() {
 
         {/* Desktop Menu */}
         <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-          <a href="/sales" className="hover:text-emerald-600 flex items-center gap-1 transition-colors">
+          <button
+            onClick={() => handleNavigate("/sales")}
+            className="hover:text-emerald-600 flex items-center gap-1 transition-colors"
+          >
             <LayoutDashboard className="w-4 h-4" />
             Dashboard
-          </a>
- 
-            <a href="/login" className="hover:text-emerald-600 flex items-center gap-1 transition-colors">
+          </button>
+
+          <button
+            onClick={() => handleNavigate("/login")}
+            className="hover:text-emerald-600 flex items-center gap-1 transition-colors"
+          >
             <Users className="w-4 h-4" />
             Login
-          </a>
+          </button>
 
-          <a href="/" className="hover:text-emerald-600 flex items-center gap-1 transition-colors">
+          <button
+            onClick={() => handleNavigate("/")}
+            className="hover:text-emerald-600 flex items-center gap-1 transition-colors"
+          >
             <Users className="w-4 h-4" />
             Home
-          </a>
-          <a href="#" className="hover:text-emerald-600 flex items-center gap-1 transition-colors">
+          </button>
+
+          <button
+            onClick={() => handleNavigate("/reports")}
+            className="hover:text-emerald-600 flex items-center gap-1 transition-colors"
+          >
             <BarChart3 className="w-4 h-4" />
             Reports
-          </a>
-
+          </button>
         </nav>
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
-
-          <button className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700">
+          <button
+            onClick={() => handleNavigate("/logout")}
+            className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700"
+          >
             <LogOut className="w-4 h-4" />
             <span>Logout</span>
           </button>
@@ -75,23 +98,37 @@ export default function Navbar() {
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 shadow-md animate-fadeIn">
           <nav className="flex flex-col py-2 text-gray-700">
-            <a href="#" className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50">
+            <button
+              onClick={() => handleNavigate("/sales")}
+              className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50"
+            >
               <LayoutDashboard className="w-4 h-4" /> Dashboard
-            </a>
-            <a href="#" className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50">
-              <Users className="w-4 h-4" /> Customers
-            </a>
-            <a href="#" className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50">
+            </button>
+            <button
+              onClick={() => handleNavigate("/login")}
+              className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50"
+            >
+              <Users className="w-4 h-4" /> Login
+            </button>
+            <button
+              onClick={() => handleNavigate("/reports")}
+              className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50"
+            >
               <BarChart3 className="w-4 h-4" /> Reports
-            </a>
-            <a href="#" className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50">
+            </button>
+            <button
+              onClick={() => handleNavigate("/settings")}
+              className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50"
+            >
               <Settings className="w-4 h-4" /> Settings
-            </a>
+            </button>
             <hr className="my-2" />
- 
-            <a href="#" className="flex items-center gap-2 px-6 py-2 text-rose-600 hover:bg-rose-50">
+            <button
+              onClick={() => handleNavigate("/logout")}
+              className="flex items-center gap-2 px-6 py-2 text-rose-600 hover:bg-rose-50"
+            >
               <LogOut className="w-4 h-4" /> Logout
-            </a>
+            </button>
           </nav>
         </div>
       )}

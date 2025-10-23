@@ -13,6 +13,7 @@ import Footer from './Footer'
 import Login from './Login';
 import Dashboard from './OutletDetailsModal';
 import ZoneOutletManagement from './Zonalrecord';
+import UserManagement from './UserManagement';
 
 
 function App() {
@@ -25,7 +26,7 @@ function App() {
         
         {/* Sales data form page */}
         <Route path="/sales" element={<Dashboard />} />
-        
+         <Route path="/usermanagement" element={<UserManagement />} />
         {/* Outlet details page */}
         <Route path="/login" element={<Login />} />
 
