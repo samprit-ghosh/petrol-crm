@@ -10,12 +10,15 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@reduxjs/toolkit": "^2.9.2",
+    "axios": "^1.12.2",
     "framer-motion": "^12.23.24",
     "lucide-react": "^0.546.0",
     "react": "^19.1.1",
     "react-calendar": "^6.0.0",
     "react-dom": "^19.1.1",
     "react-hot-toast": "^2.6.0",
+    "react-redux": "^9.2.0",
     "react-router-dom": "^7.9.4",
     "recharts": "^3.3.0"
   },

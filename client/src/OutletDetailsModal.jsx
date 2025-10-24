@@ -1,13 +1,16 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useSelector } from 'react-redux';
 import UserManagement from './UserManagement';
-// import Zonalrecord from './Zonalrecord';
 import CompactZoneView from './CompactZoneView';
 import Grapgh from './grapgh';
 import { useNavigate } from 'react-router-dom';
 
 const Dashboard = () => {
-  // Mock data for UI demonstration
-  const currentUser = {
+  // Get user data from Redux store
+  const { user, isAuthenticated, token } = useSelector((state) => state.auth);
+
+  // Mock data for UI demonstration (fallback if no user data)
+  const currentUser = user || {
     name: 'Admin User',
     role: 'admin',
     email: 'admin@company.com'
@@ -54,26 +57,78 @@ const Dashboard = () => {
     return icons[type] || '🔔';
   };
 
-
   const navigate = useNavigate();
+
+  // Console log user data when component mounts or when user data changes
+  useEffect(() => {
+    console.log("🏠 DASHBOARD COMPONENT LOADED");
+    console.log("=== AUTHENTICATION STATUS ===");
+    console.log("Is Authenticated:", isAuthenticated);
+    console.log("Has Token:", !!token);
+    console.log("Has User Data:", !!user);
+    
+    if (isAuthenticated && user) {
+      console.log("🎯 LOGGED IN USER DATA ON DASHBOARD:");
+      console.log("=== USER DETAILS ===");
+      console.log("Full User Object:", user);
+      console.log("User Email:", user.email);
+      console.log("User Name:", user.name || user.username || "Not provided");
+      console.log("User Role:", user.role || "Not specified");
+      console.log("User ID:", user.id || user._id || "Not available");
+      
+      // Log all user properties
+      console.log("=== ALL USER PROPERTIES ===");
+      Object.keys(user).forEach(key => {
+        console.log(`${key}:`, user[key]);
+      });
+
+      console.log("=== STORAGE VERIFICATION ===");
+      console.log("LocalStorage Token exists:", !!localStorage.getItem('token'));
+      console.log("LocalStorage User exists:", !!localStorage.getItem('user'));
+      
+      if (localStorage.getItem('user')) {
+        const storedUser = JSON.parse(localStorage.getItem('user'));
+        console.log("Stored User Data:", storedUser);
+      }
+    } else {
+      console.log("❌ No user data available - using fallback mock data");
+      console.log("Current fallback user:", currentUser);
+    }
+  }, [isAuthenticated, user, token, currentUser]);
+
   return (
     <div className=" bg-gray-50">
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200">
-        <div className="w-full mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
-                  {currentUser.name.charAt(0)}
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-sm font-medium text-gray-900">{currentUser.name}</span>
-                  <span className="text-xs text-gray-500 capitalize">{currentUser.role}</span>
-                </div>
+        <div className="w-full mx-auto px-3 sm:px-6 lg:px-8">
+          <div className="flex flex-col sm:flex-row justify-between sm:items-center gap-3 py-3">
+
+            {/* Title */}
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center sm:text-left">
+              Admin Dashboard
+            </h1>
+
+            {/* Profile */}
+            <div className="flex items-center space-x-2 sm:space-x-3 justify-center sm:justify-end">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-sm sm:text-base">
+                {currentUser.name ? currentUser.name.charAt(0) : 'A'}
+              </div>
+
+              <div className="flex flex-col items-center sm:items-start">
+                <span className="text-xs sm:text-sm font-medium text-gray-900">
+                  {currentUser.name || 'Admin User'}
+                </span>
+                <span className="text-[10px] sm:text-xs text-gray-500 capitalize">
+                  {currentUser.role || 'admin'}
+                </span>
+                {user && (
+                  <span className="text-[10px] text-green-600">
+                    ✅ Authenticated
+                  </span>
+                )}
               </div>
             </div>
+
           </div>
         </div>
       </header>
@@ -84,8 +139,13 @@ const Dashboard = () => {
         <div className="bg-gradient-to-r from-blue-600 to-purple-700 rounded-2xl p-8 mb-8 text-white">
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="mb-6 md:mb-0">
-              <h2 className="text-3xl font-bold mb-2">Welcome back, {currentUser.name}! 👋</h2>
-              <p className="text-blue-100 text-lg">Here's what's happening with your system today.</p>
+              <h2 className="text-3xl font-bold mb-2">
+                Welcome back, {currentUser.name || 'Admin User'}! 👋
+                {user && <span className="text-green-300 ml-2">(Logged In)</span>}
+              </h2>
+              <p className="text-blue-100 text-lg">
+                {user ? `Logged in as ${user.email}` : "Here's what's happening with your system today."}
+              </p>
             </div>
             <div className="flex space-x-8">
               <div className="text-center">
@@ -99,6 +159,7 @@ const Dashboard = () => {
             </div>
           </div>
         </div>
+
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
             <div>
@@ -110,7 +171,7 @@ const Dashboard = () => {
             {quickActions.map((action, index) => (
               <div
                 key={index}
-                    onClick={() => navigate(action.path)}
+                onClick={() => navigate(action.path)}
                 className="bg-white rounded-xl p-6 shadow-sm border border-gray-200 hover:shadow-md transition-shadow duration-200 cursor-pointer hover:border-blue-300 group"
               >
                 <div className="flex items-center justify-between">
@@ -129,13 +190,8 @@ const Dashboard = () => {
             ))}
           </div>
         </div>
-        <Grapgh/>
 
-        {/* Quick Actions */}
-
-
-        {/* Statistics Grid */}
-     
+        <Grapgh />
 
         {/* Two Column Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
@@ -164,18 +220,11 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* Outlet Status */}
-   
-
-<CompactZoneView/>
-
+          <CompactZoneView />
         </div>
 
-        {/* Role Distribution */}
-  
+        <UserManagement />
 
-
-<UserManagement/>
         {/* Role Permissions */}
         <div className="bg-white rounded-xl shadow-sm border border-gray-200">
           <div className="p-6 border-b border-gray-200">

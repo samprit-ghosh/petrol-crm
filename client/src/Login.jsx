@@ -1,4 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { loginUser, clearError } from "./store/authSlice";
 import {
   Mail,
   Lock,
@@ -30,18 +33,28 @@ const GithubIcon = () => (
 export default function Login() {
   const [form, setForm] = useState({ email: "", password: "", remember: false });
   const [showPassword, setShowPassword] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState("");
+  const [localError, setLocalError] = useState("");
+  
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, isAuthenticated, user, token } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    // Clear any existing errors when component mounts
+    dispatch(clearError());
+  }, [dispatch]);
 
   function handleChange(e) {
     const { name, value, type, checked } = e.target;
     setForm((s) => ({ ...s, [name]: type === "checkbox" ? checked : value }));
+    // Clear errors when user starts typing
+    if (localError) setLocalError("");
+    if (error) dispatch(clearError());
   }
 
   function validate() {
     if (!form.email) return "Email is required";
-    if (!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(form.email)) return "Enter a valid email";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) return "Enter a valid email";
     if (!form.password) return "Password is required";
     if (form.password.length < 6) return "Password must be at least 6 characters";
     return "";
@@ -49,15 +62,55 @@ export default function Login() {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    setError("");
-    setSuccess("");
-    const v = validate();
-    if (v) return setError(v);
-    setSubmitting(true);
-    await new Promise((r) => setTimeout(r, 800));
-    setSubmitting(false);
-    setSuccess("Logged in successfully — welcome!");
+    
+    // Clear previous errors
+    setLocalError("");
+    dispatch(clearError());
+
+    // Validate form
+    const validationError = validate();
+    if (validationError) {
+      setLocalError(validationError);
+      return;
+    }
+
+    // Dispatch login action
+    dispatch(loginUser({
+      email: form.email,
+      password: form.password
+    }));
   }
+
+  // Log user data and redirect on successful login
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      console.log("🎉 LOGIN SUCCESSFUL!");
+      console.log("=== USER DATA ===");
+      console.log("User Object:", user);
+      console.log("Email:", user.email);
+      console.log("Name:", user.name || user.username || "Not provided");
+      console.log("Role:", user.role || "Not specified");
+      console.log("User ID:", user.id || user._id || "Not available");
+      console.log("Token:", token ? `${token.substring(0, 20)}...` : "No token");
+      console.log("=== ADDITIONAL USER PROPERTIES ===");
+      
+      // Log all properties of the user object
+      if (user) {
+        Object.keys(user).forEach(key => {
+          console.log(`${key}:`, user[key]);
+        });
+      }
+      
+      console.log("=== STORED DATA ===");
+      console.log("LocalStorage Token:", localStorage.getItem('token'));
+      console.log("LocalStorage User:", localStorage.getItem('user'));
+      
+      // Navigate to /sales route after successful login
+      setTimeout(() => {
+        navigate('/sales');
+      }, 1000); // Small delay to see the console logs
+    }
+  }, [isAuthenticated, user, token, navigate]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-tr from-slate-50 via-white to-emerald-50 p-6">
@@ -88,7 +141,9 @@ export default function Login() {
                     onChange={handleChange}
                     type="email"
                     placeholder="you@example.com"
+                    autoComplete="email"
                     className="w-full pl-10 pr-3 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400"
+                    disabled={loading}
                   />
                 </div>
               </label>
@@ -106,13 +161,15 @@ export default function Login() {
                     onChange={handleChange}
                     type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
-                    autoComplete="true"
+                    autoComplete="current-password"
                     className="w-full pl-10 pr-12 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-200 focus:border-emerald-400"
+                    disabled={loading}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword((s) => !s)}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-slate-500 hover:bg-slate-100"
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-md text-slate-500 hover:bg-slate-100 disabled:opacity-50"
+                    disabled={loading}
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
@@ -127,6 +184,7 @@ export default function Login() {
                     checked={form.remember}
                     onChange={handleChange}
                     className="h-4 w-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                    disabled={loading}
                   />
                   <span className="text-slate-600">Remember me</span>
                 </label>
@@ -135,24 +193,42 @@ export default function Login() {
                 </a>
               </div>
 
-              {error && <p className="text-rose-600 text-sm">{error}</p>}
-              {success && (
-                <div className="flex items-start gap-2 text-sm text-emerald-600">
-                  <CheckCircle className="w-5 h-5 mt-0.5" />
-                  <div>{success}</div>
+              {/* Error Messages */}
+              {(localError || error) && (
+                <div className="p-3 rounded-lg bg-rose-50 border border-rose-200">
+                  <p className="text-rose-600 text-sm text-center">
+                    {localError || error}
+                  </p>
+                </div>
+              )}
+
+              {/* Success Message - Show briefly before redirect */}
+              {isAuthenticated && (
+                <div className="p-3 rounded-lg bg-emerald-50 border border-emerald-200">
+                  <div className="flex items-center justify-center gap-2 text-sm text-emerald-600">
+                    <CheckCircle className="w-5 h-5" />
+                    <div>Logged in successfully — redirecting to sales!</div>
+                  </div>
                 </div>
               )}
 
               <button
                 type="submit"
-                disabled={submitting}
-                className="w-full flex items-center justify-center gap-2 py-2 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-60"
+                disabled={loading}
+                className="w-full flex items-center justify-center gap-2 py-3 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-700 disabled:opacity-60 disabled:cursor-not-allowed transition-colors duration-200"
               >
-                {submitting ? "Signing in..." : "Sign in"}
+                {loading ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Signing in...
+                  </>
+                ) : (
+                  "Sign in"
+                )}
               </button>
             </form>
 
-            {/* social buttons */}
+            {/* Social buttons */}
             <div className="my-6 flex items-center text-sm text-slate-400">
               <div className="flex-1 h-px bg-slate-100" />
               <div className="px-3">Or continue with</div>
@@ -160,18 +236,26 @@ export default function Login() {
             </div>
 
             <div className="grid grid-cols-2 gap-3">
-              <button className="flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 bg-white hover:shadow-sm">
+              <button 
+                type="button"
+                className="flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 bg-white hover:shadow-sm transition-shadow duration-200 disabled:opacity-50"
+                disabled={loading}
+              >
                 <GoogleIcon />
                 <span className="text-sm">Google</span>
               </button>
-              <button className="flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 bg-white hover:shadow-sm">
+              <button 
+                type="button"
+                className="flex items-center justify-center gap-2 py-2 rounded-lg border border-slate-200 bg-white hover:shadow-sm transition-shadow duration-200 disabled:opacity-50"
+                disabled={loading}
+              >
                 <GithubIcon />
                 <span className="text-sm">GitHub</span>
               </button>
             </div>
 
             <p className="mt-6 text-center text-sm text-slate-500">
-              Don’t have an account?{" "}
+              Don't have an account?{" "}
               <a href="#" className="text-emerald-600 font-medium hover:underline">
                 Sign up
               </a>
