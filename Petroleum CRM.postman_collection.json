@@ -214,6 +214,133 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Outlets",
+			"item": [
+				{
+					"name": "Get All Outlets",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/outlets?zone=68fb0216c81d0330c1f0b5e5",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"outlets"
+							],
+							"query": [
+								{
+									"key": "zone",
+									"value": "68fb0216c81d0330c1f0b5e5"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Zone - Admin",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"Test Zone\",\r\n  \"description\": \"Testing zone creation\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/outlets/zone",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"outlets",
+								"zone"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create Outlet - Admin, Data Report",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"IOCL Test Outlet\",\r\n  \"code\": \"OUT999\",\r\n  \"zone\": \"68fb04e122b13b333341d888\",\r\n  \"footfallType\": \"urban\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/outlets",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"outlets"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
