@@ -1,49 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchAllUsers, createUser, updateUser, deleteUser } from './store/usersSlice';
 
 const UserManagement = () => {
-    const [users, setUsers] = useState([
-        {
-            id: 1,
-            name: 'John Doe',
-            email: 'sampritghosh310@gmail.com',
-            role: 'data_outlet',
-            outlet: 'Outlet A',
-            zone: 'Zone 1',
-            isActive: true,
-            createdAt: '2024-01-15'
-        },
-        {
-            id: 2,
-            name: 'Jane Smith',
-            email: 'sampritghosh310@gmail.com',
-            role: 'report',
-            outlet: null,
-            zone: 'Zone 2',
-            isActive: true,
-            createdAt: '2024-01-10'
-        },
-        {
-            id: 3,
-            name: 'Mike Johnson',
-            email: 'mike@data.com',
-            role: 'data_report',
-            outlet: null,
-            zone: null,
-            isActive: true,
-            createdAt: '2024-01-05'
-        },
-        {
-            id: 4,
-            name: 'Sarah Wilson',
-            email: 'sarah@admin.com',
-            role: 'admin',
-            outlet: null,
-            zone: null,
-            isActive: true,
-            createdAt: '2024-01-01'
-        }
-    ]);
-
+    const dispatch = useDispatch();
+    const { users: reduxUsers, loading, error } = useSelector((state) => state.users);
+    
+    const [users, setUsers] = useState([]);
     const [showForm, setShowForm] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [formData, setFormData] = useState({
@@ -58,9 +21,38 @@ const UserManagement = () => {
     const [roleFilter, setRoleFilter] = useState('all');
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     const [currentPage, setCurrentPage] = useState(1);
-    const [usersPerPage] = useState(2); // Changed to 2 users per page
+    const [usersPerPage] = useState(2);
     const [successMessage, setSuccessMessage] = useState('');
     const [showSuccess, setShowSuccess] = useState(false);
+
+    // Fetch users from Redux on component mount
+    useEffect(() => {
+        dispatch(fetchAllUsers());
+    }, [dispatch]);
+
+    // Update local users state when Redux users change
+    useEffect(() => {
+        if (reduxUsers && reduxUsers.length > 0) {
+            console.log('🔄 Updating local users from Redux:', reduxUsers);
+            
+            // Transform API users to match your frontend structure
+            const transformedUsers = reduxUsers.map(user => ({
+                id: user._id || user.id,
+                name: user.name || 'Unknown User',
+                email: user.email || 'No email',
+                role: user.role || 'data_outlet',
+                outlet: user.outlet || null,
+                zone: user.zone || null,
+                isActive: user.isActive !== undefined ? user.isActive : true,
+                createdAt: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : '2024-01-01'
+            }));
+            
+            setUsers(transformedUsers);
+        } else {
+            console.log('❌ No users in Redux store');
+            setUsers([]);
+        }
+    }, [reduxUsers]);
 
     // Reset form data
     const resetForm = () => {
@@ -95,32 +87,49 @@ const UserManagement = () => {
     };
 
     // Handle form submission
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (editingUser) {
-            // Update existing user
-            setUsers(users.map(user =>
-                user.id === editingUser.id
-                    ? { ...user, ...formData, password: undefined }
-                    : user
-            ));
-            showSuccessMessage('User updated successfully!');
-        } else {
-            // Add new user
-            const newUser = {
-                id: Math.max(...users.map(u => u.id)) + 1,
-                ...formData,
-                isActive: true,
-                createdAt: new Date().toISOString().split('T')[0],
-                password: undefined // Remove password from stored user object
-            };
-            setUsers([...users, newUser]);
-            showSuccessMessage('User added successfully!');
-        }
+        try {
+            if (editingUser) {
+                // Update existing user via Redux
+                await dispatch(updateUser({
+                    id: editingUser.id,
+                    userData: {
+                        name: formData.name,
+                        email: formData.email,
+                        role: formData.role,
+                        outlet: formData.outlet || null,
+                        zone: formData.zone || null
+                    }
+                })).unwrap();
+                
+                showSuccessMessage('User updated successfully!');
+            } else {
+                // Add new user via Redux
+                await dispatch(createUser({
+                    name: formData.name,
+                    email: formData.email,
+                    role: formData.role,
+                    outlet: formData.outlet || null,
+                    zone: formData.zone || null,
+                    password: formData.password,
+                    isActive: true
+                })).unwrap();
+                
+                showSuccessMessage('User added successfully!');
+            }
 
-        setShowForm(false);
-        resetForm();
+            setShowForm(false);
+            resetForm();
+            
+            // Refresh users list
+            dispatch(fetchAllUsers());
+            
+        } catch (error) {
+            console.error('Error saving user:', error);
+            showSuccessMessage(`Error: ${error.message || 'Failed to save user'}`);
+        }
     };
 
     // Edit user
@@ -138,27 +147,47 @@ const UserManagement = () => {
     };
 
     // Delete user
-    const handleDelete = (userId) => {
+    const handleDelete = async (userId) => {
         if (window.confirm('Are you sure you want to delete this user?')) {
-            const userName = users.find(user => user.id === userId)?.name;
-            setUsers(users.filter(user => user.id !== userId));
-            showSuccessMessage(`User "${userName}" deleted successfully!`);
-            // Reset to first page if current page becomes empty
-            if (filteredUsers.length <= 1 && currentPage > 1) {
-                setCurrentPage(currentPage - 1);
+            try {
+                const userName = users.find(user => user.id === userId)?.name;
+                await dispatch(deleteUser(userId)).unwrap();
+                showSuccessMessage(`User "${userName}" deleted successfully!`);
+                
+                // Refresh users list
+                dispatch(fetchAllUsers());
+                
+                // Reset to first page if current page becomes empty
+                if (filteredUsers.length <= 1 && currentPage > 1) {
+                    setCurrentPage(currentPage - 1);
+                }
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                showSuccessMessage(`Error: ${error.message || 'Failed to delete user'}`);
             }
         }
     };
 
     // Toggle user status
-    const handleToggleStatus = (userId) => {
-        setUsers(users.map(user =>
-            user.id === userId
-                ? { ...user, isActive: !user.isActive }
-                : user
-        ));
-        const user = users.find(u => u.id === userId);
-        showSuccessMessage(`User ${user.isActive ? 'deactivated' : 'activated'} successfully!`);
+    const handleToggleStatus = async (userId) => {
+        try {
+            const user = users.find(u => u.id === userId);
+            await dispatch(updateUser({
+                id: userId,
+                userData: {
+                    isActive: !user.isActive
+                }
+            })).unwrap();
+            
+            showSuccessMessage(`User ${user.isActive ? 'deactivated' : 'activated'} successfully!`);
+            
+            // Refresh users list
+            dispatch(fetchAllUsers());
+            
+        } catch (error) {
+            console.error('Error updating user status:', error);
+            showSuccessMessage(`Error: ${error.message || 'Failed to update user status'}`);
+        }
     };
 
     // Cancel form
@@ -248,6 +277,36 @@ const UserManagement = () => {
         return pageNumbers;
     };
 
+    // Show loading state
+    if (loading && users.length === 0) {
+        return (
+            <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen px-4 py-6 sm:p-6 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-4 text-gray-600">Loading users...</p>
+                </div>
+            </div>
+        );
+    }
+
+    // Show error state
+    if (error && users.length === 0) {
+        return (
+            <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen px-4 py-6 sm:p-6 flex items-center justify-center">
+                <div className="text-center">
+                    <div className="text-red-500 text-lg mb-4">Error loading users</div>
+                    <p className="text-gray-600 mb-4">{error}</p>
+                    <button
+                        onClick={() => dispatch(fetchAllUsers())}
+                        className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
+                    >
+                        Retry
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen px-4 py-6 sm:p-6">
             <div className="w-full mx-auto">
@@ -276,7 +335,9 @@ const UserManagement = () => {
                     <h1 className="text-2xl sm:text-4xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                         User Management
                     </h1>
-                    <p className="text-gray-600 mt-2 sm:mt-3 text-sm sm:text-lg">Manage system users and their roles efficiently</p>
+                    <p className="text-gray-600 mt-2 sm:mt-3 text-sm sm:text-lg">
+                        {loading ? 'Loading users...' : `Managing ${users.length} system users`}
+                    </p>
                 </div>
 
                 {/* Mobile Filter Toggle */}
@@ -320,7 +381,6 @@ const UserManagement = () => {
                                             d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
                                         />
                                     </svg>
-
                                 </div>
                                 <input
                                     type="text"
@@ -738,7 +798,6 @@ const UserManagement = () => {
                                         </div>
                                     </div>
 
-
                                     {/* Role & Assignment Details */}
                                     <div className="bg-gradient-to-r from-gray-50 to-blue-50 rounded-xl p-4 mb-4 border border-gray-200">
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -863,26 +922,14 @@ const UserManagement = () => {
                     </div>
                 </div>
 
-
                 {/* Pagination */}
                 {totalPages > 1 && (
-                    <div
-                        className="
-      flex flex-wrap justify-center items-center gap-2 mb-6
-      px-2 sm:px-0
-    "
-                    >
+                    <div className="flex flex-wrap justify-center items-center gap-2 mb-6 px-2 sm:px-0">
                         {/* Previous Button */}
                         <button
                             onClick={() => paginate(Math.max(1, currentPage - 1))}
                             disabled={currentPage === 1}
-                            className="
-        flex items-center gap-1 sm:gap-2
-        px-2 sm:px-4 py-1.5 sm:py-2
-        rounded-lg bg-white border border-gray-200 text-gray-600
-        hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed
-        transition-all duration-200 text-xs sm:text-sm
-      "
+                            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm"
                         >
                             <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -904,13 +951,10 @@ const UserManagement = () => {
                                     <button
                                         key={pageNumber}
                                         onClick={() => paginate(pageNumber)}
-                                        className={`
-                    px-3 sm:px-4 py-2 sm:py-2 rounded-lg transition-all duration-200 text-sm sm:text-xs font-medium
-                    ${currentPage === pageNumber
+                                        className={`px-3 sm:px-4 py-2 sm:py-2 rounded-lg transition-all duration-200 text-sm sm:text-xs font-medium ${currentPage === pageNumber
                                                 ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg"
                                                 : "bg-white border border-gray-200 text-red-600 hover:bg-gray-50"
-                                            }
-                `}
+                                            }`}
                                     >
                                         {pageNumber}
                                     </button>
@@ -922,13 +966,7 @@ const UserManagement = () => {
                         <button
                             onClick={() => paginate(Math.min(totalPages, currentPage + 1))}
                             disabled={currentPage === totalPages}
-                            className="
-        flex items-center gap-1 sm:gap-2
-        px-2 sm:px-4 py-1.5 sm:py-2
-        rounded-lg bg-white border border-gray-200 text-gray-600
-        hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed
-        transition-all duration-200 text-xs sm:text-sm
-      "
+                            className="flex items-center gap-1 sm:gap-2 px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg bg-white border border-gray-200 text-gray-600 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 text-xs sm:text-sm"
                         >
                             <span className="hidden xs:inline">Next</span>
                             <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -937,7 +975,6 @@ const UserManagement = () => {
                         </button>
                     </div>
                 )}
-
 
                 {/* Empty State */}
                 {filteredUsers.length === 0 && (
@@ -967,7 +1004,7 @@ const UserManagement = () => {
             </div>
 
             {/* Add custom animations */}
-            <style jsx>{`
+            <style jsx='true'>{`
                 @keyframes scale-in {
                     from {
                         opacity: 0;
