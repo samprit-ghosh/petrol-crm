@@ -8,4 +8,4 @@ router.get("/zone/:zoneId", protect, authorizeRoles("report", "data_report", "ad
 router.get("/overall", protect, authorizeRoles("report", "data_report", "admin"), getOverallReport);
 router.get("/baseline-compare/:outletId", protect, authorizeRoles("report", "data_report", "admin"), baselineCompare);
 
-export default router;
+export default router; 
