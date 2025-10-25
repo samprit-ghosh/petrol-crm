@@ -341,6 +341,91 @@
 					"response": []
 				}
 			]
+		},
+		{
+			"name": "Sales",
+			"item": [
+				{
+					"name": "Add Single Sale",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"outlet\": \"68fb03ef22b13b333341d672\",\r\n  \"date\": \"2025-10-20\",\r\n  \"petrol_standard\": 1200,\r\n  \"diesel_standard\": 900,\r\n  \"premium_products\": 200,\r\n  \"lube_sales\": 50,\r\n  \"additive_sales\": 10\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/sales",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"sales"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload CSV Sales",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "postman-cloud:///1f0b1745-cdb8-4b60-8225-d3f8cd861c40"
+								}
+							]
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/sales/csv",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"sales",
+								"csv"
+							]
+						}
+					},
+					"response": []
+				}
+			]
 		}
 	]
 }
