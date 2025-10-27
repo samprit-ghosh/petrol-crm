@@ -24,5 +24,23 @@ app.use("/api/reports", reportRoutes);
 
 app.get("/", (req, res) => res.send("Fuel Sales Tracker API running"));
 
+// Add a health check endpoint (important for Render)
+app.get("/health", (req, res) => {
+  res.status(200).json({ 
+    status: "OK", 
+    message: "Server is healthy",
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development'
+  });
+});
+
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
+const HOST = process.env.NODE_ENV === 'production' ? '0.0.0.0' : 'localhost';
+
+app.listen(PORT, HOST, () => {
+  if (process.env.NODE_ENV === 'production') {
+    console.log(`🚀 Production server running on port ${PORT}`);
+  } else {
+    console.log(`🔧 Development server running on http://localhost:${PORT}`);
+  }
+});
