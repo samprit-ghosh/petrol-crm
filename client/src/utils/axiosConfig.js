@@ -1,7 +1,8 @@
 import axios from 'axios';
 
 const axiosInstance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? 'https://petrol-crm.onrender.com/api',
+  baseURL:  'https://petrol-crm.onrender.com/api',
+  // export const API_URL = 'http://localhost:5000/api/auth';
 });
 
 // Add token to requests

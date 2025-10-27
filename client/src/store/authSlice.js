@@ -1,7 +1,12 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/auth';
+
+
+export const API_URL = 'https://petrol-crm.onrender.com/api/auth';
+
+// export const API_URL = 'http://localhost:5000/api/auth';
+
 
 // Get initial state from localStorage
 const getInitialState = () => {
