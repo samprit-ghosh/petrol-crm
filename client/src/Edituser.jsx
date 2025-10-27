@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchZonesData } from './store/zonesSlice';
 import axiosInstance from "./utils/axiosConfig";
 
-// Move getZoneIcon function to the top
+// Move helper functions to the top
 const getZoneIcon = (zoneName) => {
   const zoneIcons = {
     'north': '❄️',
@@ -23,7 +23,6 @@ const getZoneIcon = (zoneName) => {
   return zoneIcons.default;
 };
 
-// Move getFootfallIcon function to the top
 const getFootfallIcon = (footfallType) => {
   const icons = {
     'urban': '🏙️',
@@ -34,15 +33,12 @@ const getFootfallIcon = (footfallType) => {
   return icons[footfallType?.toLowerCase()] || icons.default;
 };
 
-function AddNewUser({ onClose = () => {}, onUserAdded }) {
+function EditUser({ user, onClose = () => {}, onUserUpdated }) {
   const dispatch = useDispatch();
   const { zones: zonesData, loading: zonesLoading, error: zonesError } = useSelector((state) => state.zones);
 
   const [formData, setFormData] = useState({
-    name: "",
-    email: "",
-    password: "",
-    role: "data_outlet",
+    role: "",
     outletId: "",
     outlet: "",
     zone: "",
@@ -58,7 +54,7 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
     dispatch(fetchZonesData());
   }, [dispatch]);
 
-  // Transform Redux zones data to work with this component - useMemo to prevent recreation
+  // Transform zones data for dropdown - useMemo to prevent recreation on every render
   const zones = useMemo(() => {
     const zoneData = zonesData || {};
     return Object.keys(zoneData).map(zoneName => ({
@@ -67,6 +63,19 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
       outlets: zoneData[zoneName] || []
     }));
   }, [zonesData]); // Only recreate when zonesData changes
+
+  // Initialize form data when user prop changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        role: user.role || "",
+        outletId: user.outletId || "",
+        outlet: "",
+        zone: user.zone || "",
+        outletName: user.outletName || ""
+      });
+    }
+  }, [user]);
 
   // Handle escape key press
   useEffect(() => {
@@ -80,32 +89,35 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
     return () => document.removeEventListener('keydown', handleEscape);
   }, [onClose]);
 
-  // Update available outlets when zone changes
+  // Update available outlets when zone changes - FIXED: removed zones from dependencies
   useEffect(() => {
     if (formData.zone && formData.role === "data_outlet") {
       const selectedZone = zones.find(zone => zone.value === formData.zone);
       if (selectedZone && selectedZone.outlets) {
         const outlets = selectedZone.outlets.map(outlet => ({
-          value: outlet.id || outlet._id, // Use the outlet ID as value
+          value: outlet.id || outlet._id,
           label: `${getFootfallIcon(outlet.footfallType)} ${outlet.name} (${outlet.code})`,
           outletData: outlet
         }));
         setAvailableOutlets(outlets);
-        console.log('Available outlets:', outlets); // Debug log
+        
+        // Auto-select the outlet if user already has one
+        if (user?.outletId && !formData.outlet) {
+          const userOutlet = outlets.find(outlet => outlet.value === user.outletId);
+          if (userOutlet) {
+            setFormData(prev => ({
+              ...prev,
+              outlet: userOutlet.value
+            }));
+          }
+        }
       } else {
         setAvailableOutlets([]);
       }
-      
-      // Reset outlet selection when zone changes
-      setFormData(prev => ({
-        ...prev,
-        outlet: "",
-        outletId: ""
-      }));
     } else {
       setAvailableOutlets([]);
     }
-  }, [formData.zone, formData.role]); // Removed zones from dependencies
+  }, [formData.zone, formData.role, user?.outletId]); // Removed zones from dependencies
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -117,15 +129,24 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
     // Auto-fill outlet ID when outlet is selected
     if (name === 'outlet' && value) {
       const selectedOutlet = availableOutlets.find(outlet => outlet.value === value);
-      console.log('Selected outlet:', selectedOutlet); // Debug log
       if (selectedOutlet && selectedOutlet.outletData) {
         const outletId = selectedOutlet.outletData.id || selectedOutlet.outletData._id;
-        console.log('Setting outlet ID:', outletId); // Debug log
         setFormData(prev => ({
           ...prev,
           outletId: outletId || ""
         }));
       }
+    }
+
+    // Reset dependent fields when role changes
+    if (name === 'role') {
+      setFormData(prev => ({
+        ...prev,
+        zone: "",
+        outlet: "",
+        outletId: "",
+        outletName: ""
+      }));
     }
   };
 
@@ -163,52 +184,46 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
     }
 
     try {
-      // Prepare user data EXACTLY matching your database structure
-      const userData = {
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        password: formData.password,
-        role: formData.role,
-        isActive: true,
-        // createdAt and updatedAt will be automatically set by MongoDB
+      // Prepare update data - only send changed fields
+      const updateData = {
+        role: formData.role
       };
 
-      // Add outlet data for data_outlet role - match your existing data structure
+      // Add outlet data for data_outlet role
       if (formData.role === "data_outlet") {
-        const selectedOutlet = availableOutlets.find(outlet => outlet.value === formData.outlet);
-        userData.outletId = formData.outletId; // Use the outletId from formData
-        
-        console.log('Outlet assignment data:', {
-          outletId: formData.outletId,
-          selectedOutlet: selectedOutlet
-        });
+        updateData.outletId = formData.outletId;
       }
 
-      // For data_report role, we only need zone and outletName
+      // For data_report role, add zone and outletName
       if (formData.role === "data_report") {
-        userData.outletName = formData.outletName.trim();
+        updateData.outletName = formData.outletName.trim();
       }
 
       // Add zone for both data_outlet and data_report roles
       if (formData.role === "data_outlet" || formData.role === "data_report") {
-        userData.zone = formData.zone;
+        updateData.zone = formData.zone;
       }
 
-      console.log('Final user data being sent:', userData);
-      console.log('Full URL:', `${axiosInstance.defaults.baseURL}/users`);
+      // Clear outletId if role is not data_outlet
+      if (formData.role !== "data_outlet") {
+        updateData.outletId = "";
+      }
 
-      // Make the API call to /api/users
-      const response = await axiosInstance.post("/auth/register", userData);
+      console.log('Updating user with data:', updateData);
+      console.log('User ID:', user?.id);
 
-      const newUser = response.data;
+      // Make the PATCH API call to update user role
+      const response = await axiosInstance.patch(`/users/${user?.id}/role`, updateData);
 
-      console.log('User created successfully:', newUser);
+      const updatedUser = response.data;
 
-      if (onUserAdded) onUserAdded(newUser);
+      console.log('User updated successfully:', updatedUser);
+
+      if (onUserUpdated) onUserUpdated(updatedUser);
       if (onClose) onClose();
       
     } catch (err) {
-      console.error('Error creating user:', err);
+      console.error('Error updating user:', err);
       console.error('Error details:', {
         status: err.response?.status,
         statusText: err.response?.statusText,
@@ -218,11 +233,11 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
       
       // Detailed error handling
       if (err.response?.status === 404) {
-        setError("User creation endpoint not found (404). Please check if the server is running.");
+        setError("User update endpoint not found (404). Please check if the server is running.");
       } else if (err.response?.status === 401) {
         setError("Unauthorized. Please check your authentication token.");
       } else if (err.response?.status === 403) {
-        setError("Forbidden. You don't have permission to create users.");
+        setError("Forbidden. You don't have permission to update users.");
       } else if (err.response?.status === 400) {
         const errorMsg = err.response?.data?.message || err.response?.data?.error || "Please check your input data";
         setError(`Bad request: ${errorMsg}`);
@@ -236,7 +251,7 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
         setError(
           err.response?.data?.error ||
           err.message ||
-          "Failed to create user. Please try again."
+          "Failed to update user. Please try again."
         );
       }
     } finally {
@@ -261,6 +276,10 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
     { value: "admin", label: "Administrator", icon: "👑" }
   ];
 
+  if (!user) {
+    return null;
+  }
+
   return (
     <div 
       className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4"
@@ -272,17 +291,17 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
       {/* MODAL CONTENT */}
       <div className="relative bg-white/95 backdrop-blur-xl rounded-2xl sm:rounded-3xl shadow-2xl w-full max-w-sm sm:max-w-md overflow-y-auto border border-white/20 max-h-[90vh]">
         {/* HEADER */}
-        <div className="bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl p-6 text-white relative">
+        <div className="bg-gradient-to-r from-green-600 to-blue-600 rounded-t-2xl p-6 text-white relative">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-white bg-opacity-20 rounded-lg flex items-center justify-center">
               <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
               </svg>
             </div>
             <div>
-              <h2 className="text-xl font-bold">Add New User</h2>
+              <h2 className="text-xl font-bold">Edit User Role</h2>
               <p className="text-blue-100 text-sm mt-1">
-                Create a new user with permissions
+                Update role and permissions for {user.name}
               </p>
             </div>
           </div>
@@ -300,6 +319,22 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
           </button>
         </div>
 
+        {/* USER INFO */}
+        <div className="p-6 border-b border-gray-200">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+              {user.name?.charAt(0).toUpperCase()}
+            </div>
+            <div>
+              <h3 className="font-semibold text-gray-900">{user.name}</h3>
+              <p className="text-sm text-gray-600">{user.email}</p>
+              <p className="text-xs text-gray-500 mt-1">
+                Current Role: <span className="font-medium capitalize">{user.role?.replace('_', ' ')}</span>
+              </p>
+            </div>
+          </div>
+        </div>
+
         {/* ERROR MESSAGE */}
         {error && (
           <div className="mx-6 mt-4 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700 flex items-start gap-3">
@@ -311,88 +346,8 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
           </div>
         )}
 
-        {/* ZONES LOADING STATE */}
-        {zonesLoading && (
-          <div className="mx-6 mt-4 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700 flex items-center gap-3">
-            <svg className="animate-spin h-4 w-4 text-blue-500" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            <p>Loading zones data...</p>
-          </div>
-        )}
-
-        {/* ZONES ERROR STATE */}
-        {zonesError && (
-          <div className="mx-6 mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-xl text-sm text-yellow-700 flex items-start gap-3">
-            <span className="text-yellow-500 text-lg">⚠️</span>
-            <div>
-              <p className="font-medium">Warning</p>
-              <p>Could not load zones data. Using default options.</p>
-            </div>
-          </div>
-        )}
-
         {/* FORM */}
         <form onSubmit={handleSubmit} className="p-6 space-y-6">
-          {/* FULL NAME */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-              </svg>
-              Full Name *
-            </label>
-            <input
-              type="text"
-              name="name"
-              required
-              value={formData.name}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white placeholder-gray-400"
-              placeholder="Enter full name"
-            />
-          </div>
-
-          {/* EMAIL */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-              </svg>
-              Email *
-            </label>
-            <input
-              type="email"
-              name="email"
-              required
-              value={formData.email}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white placeholder-gray-400"
-              placeholder="Enter email address"
-            />
-          </div>
-
-          {/* PASSWORD */}
-          <div>
-            <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
-              <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-              </svg>
-              Password *
-            </label>
-            <input
-              type="password"
-              minLength="6"
-              name="password"
-              required
-              value={formData.password}
-              onChange={handleInputChange}
-              className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white placeholder-gray-400"
-              placeholder="Create a password (min. 6 characters)"
-            />
-          </div>
-
           {/* ROLE */}
           <div>
             <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
@@ -442,9 +397,6 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
                     </option>
                   ))}
                 </select>
-                {zonesLoading && (
-                  <p className="text-xs text-gray-500 mt-1">Loading zones from database...</p>
-                )}
               </div>
 
               {/* OUTLET SELECTION - Only shows when zone is selected */}
@@ -455,11 +407,6 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                     </svg>
                     Select Outlet *
-                    {availableOutlets.length > 0 && (
-                      <span className="text-xs text-gray-500 font-normal ml-1">
-                        ({availableOutlets.length} available)
-                      </span>
-                    )}
                   </label>
                   <select
                     name="outlet"
@@ -475,22 +422,16 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
                       </option>
                     ))}
                   </select>
-                  {availableOutlets.length === 0 && formData.zone && (
-                    <p className="text-xs text-yellow-600 mt-1">
-                      No outlets available in this zone. Please select another zone.
-                    </p>
-                  )}
                 </div>
               )}
 
-              {/* OUTLET ID (Auto-filled with the actual outlet ID) */}
+              {/* OUTLET ID (Auto-filled) */}
               <div>
                 <label className="block text-sm font-semibold text-gray-900 mb-2 flex items-center gap-2">
                   <svg className="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
                   </svg>
                   Outlet ID
-                  <span className="text-xs text-gray-500 font-normal ml-1">(Auto-filled with outlet ID)</span>
                 </label>
                 <input
                   type="text"
@@ -498,14 +439,9 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
                   value={formData.outletId}
                   onChange={handleInputChange}
                   className="w-full px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200 bg-white placeholder-gray-400"
-                  placeholder="Outlet ID will be auto-filled when you select an outlet"
-                  readOnly // Make it read-only since it's auto-filled
+                  placeholder="Outlet ID will be auto-filled"
+                  readOnly
                 />
-                {formData.outletId && (
-                  <p className="text-xs text-green-600 mt-1">
-                    Using outlet ID: <strong>{formData.outletId}</strong>
-                  </p>
-                )}
               </div>
             </>
           )}
@@ -562,8 +498,8 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              disabled={loading || zonesLoading}
-              className="flex-1 bg-gradient-to-r from-blue-600 to-purple-600 text-white py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 font-semibold disabled:from-blue-400 disabled:to-purple-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+              disabled={loading}
+              className="flex-1 bg-gradient-to-r from-green-600 to-blue-600 text-white py-3 rounded-xl hover:from-green-700 hover:to-blue-700 transition-all duration-200 font-semibold disabled:from-green-400 disabled:to-blue-400 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
             >
               {loading ? (
                 <>
@@ -571,14 +507,14 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                   </svg>
-                  Creating User...
+                  Updating User...
                 </>
               ) : (
                 <>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Create User
+                  Update Role
                 </>
               )}
             </button>
@@ -597,4 +533,4 @@ function AddNewUser({ onClose = () => {}, onUserAdded }) {
   );
 }
 
-export default AddNewUser;
+export default EditUser;

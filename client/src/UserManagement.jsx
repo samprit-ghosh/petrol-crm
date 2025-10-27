@@ -3,6 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchAllUsers, createUser, updateUser, deleteUser } from './store/usersSlice';
 import { fetchZonesData } from './store/zonesSlice';
 import AddNewUser from './AddNewUser';
+import EditUser from './EditUser';
 
 const UserManagement = () => {
     const dispatch = useDispatch();
@@ -10,7 +11,7 @@ const UserManagement = () => {
     const { zones } = useSelector((state) => state.zones);
 
     const [users, setUsers] = useState([]);
-    const [showForm, setShowForm] = useState(false);
+    const [showAddUserModal, setShowAddUserModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [formData, setFormData] = useState({
         name: '',
@@ -38,11 +39,11 @@ const UserManagement = () => {
     // Extract outlet data from zones based on outletId
     const getOutletData = (outletId) => {
         if (!outletId || !zones) return null;
-        
+
         // Search through all zones to find the outlet and its zone
         for (const [zoneName, zoneOutlets] of Object.entries(zones)) {
             if (Array.isArray(zoneOutlets)) {
-                const outlet = zoneOutlets.find(outlet => 
+                const outlet = zoneOutlets.find(outlet =>
                     outlet.id === outletId || outlet._id === outletId || outlet.code === outletId
                 );
                 if (outlet) {
@@ -66,9 +67,9 @@ const UserManagement = () => {
             'west': '🌄',
             'default': '🏢'
         };
-        
+
         if (!zoneName) return zoneIcons.default;
-        
+
         const lowerZone = zoneName.toLowerCase();
         if (lowerZone.includes('north')) return zoneIcons.north;
         if (lowerZone.includes('south')) return zoneIcons.south;
@@ -96,7 +97,7 @@ const UserManagement = () => {
             // Transform API users to match your frontend structure
             const transformedUsers = reduxUsers.map(user => {
                 const outletData = user.outletId ? getOutletData(user.outletId) : null;
-                
+
                 return {
                     id: user._id || user.id,
                     name: user.name || 'Unknown User',
@@ -106,6 +107,7 @@ const UserManagement = () => {
                     outletId: user.outletId || null,
                     outletData: outletData, // Add outlet data with zone name
                     zone: user.zone || null,
+                    outletName: user.outletName || null,
                     isActive: user.isActive !== undefined ? user.isActive : true,
                     createdAt: user.createdAt ? new Date(user.createdAt).toISOString().split('T')[0] : '2024-01-01'
                 };
@@ -187,7 +189,7 @@ const UserManagement = () => {
                 showSuccessMessage('User added successfully!');
             }
 
-            setShowForm(false);
+            setShowAddUserModal(false);
             resetForm();
 
             // Refresh users list
@@ -211,7 +213,7 @@ const UserManagement = () => {
             zone: user.zone || '',
             password: '' // Don't pre-fill password for security
         });
-        setShowForm(true);
+        setShowAddUserModal(true);
     };
 
     // Delete user
@@ -260,14 +262,30 @@ const UserManagement = () => {
 
     // Cancel form
     const handleCancel = () => {
-        setShowForm(false);
+        setShowAddUserModal(false);
         resetForm();
     };
 
     // Close form with cross button
     const handleCloseForm = () => {
-        setShowForm(false);
+        setShowAddUserModal(false);
         resetForm();
+    };
+
+    // Handle user added from AddNewUser modal
+    const handleUserAdded = (newUser) => {
+        console.log('New user created:', newUser);
+        showSuccessMessage('User added successfully!');
+        // Refresh users list
+        dispatch(fetchAllUsers());
+    };
+
+    // Handle user updated from EditUser modal
+    const handleUserUpdated = (updatedUser) => {
+        console.log('User updated:', updatedUser);
+        showSuccessMessage('User role updated successfully!');
+        // Refresh users list
+        dispatch(fetchAllUsers());
     };
 
     // Filter users based on search and role filter
@@ -347,14 +365,25 @@ const UserManagement = () => {
 
     // Show loading state
     if (loading && users.length === 0) {
-        return (
-            <div className="bg-gradient-to-br from-blue-50 via-white to-purple-50 min-h-screen px-4 py-6 sm:p-6 flex items-center justify-center">
-                <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-                    <p className="mt-4 text-gray-600">Loading users...</p>
-                </div>
-            </div>
-        );
+  return (
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-6 bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Option 1: Modern Spinner with Gradient */}
+      <div className="relative">
+        <div className="w-16 h-16 rounded-full border-4 border-purple-200"></div>
+        <div className="absolute top-0 left-0 w-16 h-16 rounded-full border-4 border-transparent border-t-purple-600 border-r-blue-500 animate-spin"></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-3 h-3 bg-purple-600 rounded-full animate-pulse"></div>
+      </div>
+
+ 
+
+      <p className="text-xl font-semibold bg-gradient-to-r from-purple-600 to-blue-500 bg-clip-text text-transparent tracking-wide">
+        Please Wait Some Time...
+      </p>
+      <p className="text-sm text-gray-500 animate-pulse">
+        Please wait while we verify your credentials
+      </p>
+    </div>
+  );
     }
 
     // Show error state
@@ -481,21 +510,38 @@ const UserManagement = () => {
                         </div>
 
                         {/* Add User Button */}
-                        <button
-                            onClick={() => setShowForm(true)}
-                            className="w-full sm:w-auto bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
-                        >
-                            <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                            </svg>
-                            Add New User
-                        </button>
+                        <div className="w-full flex justify-end">
+                            <button
+                                onClick={() => setShowAddUserModal(true)}
+                                className="w-full  bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium flex items-center justify-center gap-2 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
+                            >
+                                <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                                </svg>
+                                Add New User
+                            </button>
+                        </div>
                     </div>
                 </div>
 
-                {/* User Form Modal with Enhanced Background */}
-                {showForm && (
-             <AddNewUser/>
+                {/* Add User Modal */}
+                {showAddUserModal && (
+                    <AddNewUser
+                        onClose={() => {
+                            setShowAddUserModal(false);
+                            resetForm();
+                        }}
+                        onUserAdded={handleUserAdded}
+                    />
+                )}
+
+                {/* Edit User Modal */}
+                {editingUser && (
+                    <EditUser
+                        user={editingUser}
+                        onClose={() => setEditingUser(null)}
+                        onUserUpdated={handleUserUpdated}
+                    />
                 )}
 
                 {/* Users Count and Pagination Info */}
@@ -519,7 +565,7 @@ const UserManagement = () => {
                         <div className="col-span-2">OUTLET DETAILS</div>
                         <div className="col-span-1">STATUS</div>
                         <div className="col-span-1">JOINED</div>
-                        <div className="col-span-1">ACTIONS</div>
+                        <div className="col-span-1" >ACTIONS</div>
                     </div>
 
                     {/* Table Body */}
@@ -563,49 +609,49 @@ const UserManagement = () => {
                                     </div>
 
                                     {/* OUTLET DETAILS */}
-                  <div className="col-span-2">
-  {user.outletData ? (
-    <div className="space-y-2 -ml-10">
-      
-      {/* Outlet Name + Code */}
-      <div className="flex items-center gap-2">
-        <span className="text-xl">{getFootfallIcon(user.outletData.footfallType)}</span>
-        <div>
-          <div className="text-sm font-semibold text-gray-900">
-            {user.outletData.name}
-          </div>
-          <div className="text-xs text-gray-600">
-            Code: {user.outletData.code}
-          </div>
-        </div>
-      </div>
+                                    <div className="col-span-2">
+                                        {user.outletData ? (
+                                            <div className="space-y-2 -ml-10">
 
-      {/* Footfall + Zone */}
-      <div className="text-xs text-gray-700 flex flex-col gap-1 ml-7">
+                                                {/* Outlet Name + Code */}
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-xl">{getFootfallIcon(user.outletData.footfallType)} </span>
+                                                    <div>
+                                                        <div className="text-sm font-semibold text-gray-900">
+                                                            {user.outletData.name}
+                                                        </div>
+                                                        <div className="text-xs text-gray-600">
+                                                            Code: {user.outletData.code}
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                                {/* Footfall + Zone */}
+                                                <div className="text-xs text-gray-700 flex flex-col gap-1 ml-7">
 
 
-        {user.outletData.zoneName && (
-          <span className="flex items-center gap-1 capitalize">
-            {getZoneIcon(user.outletData.zoneName)} {user.outletData.zoneName} ( {user.outletData.footfallType} )
-          </span>
-        )}
-      </div>
+                                                    {user.outletData.zoneName && (
+                                                        <span className="flex items-center gap-1 capitalize">
+                                                            {getZoneIcon(user.outletData.zoneName)} {user.outletData.zoneName} ( {user.outletData.footfallType} )
+                                                        </span>
+                                                    )}
+                                                </div>
 
-      {/* Outlet ID */}
-      <div className="text-xs text-gray-500 ml-7">
-        ID: {user.outletId}
-      </div>
+                                                {/* Outlet ID */}
+                                                <div className="text-xs text-gray-500 ml-7">
+                                                    ID: {user.outletId}
+                                                </div>
 
-    </div>
-  ) : user.outletId ? (
-    <div className="text-sm text-gray-900">
-      <div className="font-medium">Outlet ID: {user.outletId}</div>
-      <div className="text-xs text-gray-500">No additional details available</div>
-    </div>
-  ) : (
-    <span className="text-sm text-gray-400 italic">-</span>
-  )}
-</div>
+                                            </div>
+                                        ) : user.outletId ? (
+                                            <div className="text-sm text-gray-900">
+                                                <div className="font-medium">Outlet ID: {user.outletId}</div>
+                                                <div className="text-xs text-gray-500">No additional details available</div>
+                                            </div>
+                                        ) : (
+                                            <span className="text-sm text-gray-400 italic">No details available</span>
+                                        )}
+                                    </div>
 
 
                                     {/* STATUS */}
@@ -628,68 +674,13 @@ const UserManagement = () => {
                                     {/* ACTIONS */}
                                     <div className="col-span-1 flex items-center space-x-2">
                                         <button
-                                            onClick={() => handleEdit(user)}
-                                            className="text-blue-600 hover:text-blue-800 transition-colors duration-200 p-1 rounded-lg hover:bg-blue-50"
-                                            title="Edit User"
+                                            onClick={() => setEditingUser(user)}
+                                            className="text-blue-600 hover:text-blue-900 bg-blue-50 hover:bg-blue-100 px-3 py-1 rounded-lg transition-colors duration-200 flex items-center gap-1 text-sm"
                                         >
-                                            <svg
-                                                className="w-4 h-4"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                                                />
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                                             </svg>
-                                        </button>
-                                        <button
-                                            onClick={() => handleToggleStatus(user.id)}
-                                            className={`p-1 rounded-lg transition-colors duration-200 hover:bg-gray-50 ${user.isActive
-                                                ? "text-orange-600 hover:text-orange-800"
-                                                : "text-green-600 hover:text-green-800"
-                                                }`}
-                                            title={user.isActive ? "Deactivate User" : "Activate User"}
-                                        >
-                                            <svg
-                                                className="w-4 h-4"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d={
-                                                        user.isActive
-                                                            ? "M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"
-                                                            : "M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                                                    }
-                                                />
-                                            </svg>
-                                        </button>
-                                        <button
-                                            onClick={() => handleDelete(user.id)}
-                                            className="text-red-600 hover:text-red-800 transition-colors duration-200 p-1 rounded-lg hover:bg-red-50"
-                                            title="Delete User"
-                                        >
-                                            <svg
-                                                className="w-4 h-4"
-                                                fill="none"
-                                                stroke="currentColor"
-                                                viewBox="0 0 24 24"
-                                            >
-                                                <path
-                                                    strokeLinecap="round"
-                                                    strokeLinejoin="round"
-                                                    strokeWidth={2}
-                                                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
-                                                />
-                                            </svg>
+                                            Edit Role
                                         </button>
                                     </div>
                                 </div>
@@ -748,7 +739,7 @@ const UserManagement = () => {
                                                             {getRoleDisplayName(user.role)}
                                                         </span>
                                                     </div>
-                                                    
+
                                                     {/* Description */}
                                                     <div className="flex flex-col space-y-1">
                                                         <span className="text-sm text-gray-600 font-semibold">Description:</span>
@@ -762,15 +753,15 @@ const UserManagement = () => {
                                                         <span className="text-sm text-gray-600 font-semibold">Outlet:</span>
 
                                                         {user.outletData ? (
-                                                            
+
                                                             <div className="flex items-start gap-3">
-                                             
+
                                                                 <div className="flex flex-col">
                                                                     <span className="text-sm font-medium text-gray-900">
                                                                         {user.outletData.name}                    <span className="text-lg">{getFootfallIcon(user.outletData.footfallType)}</span>
                                                                     </span>
                                                                     <span className="text-xs text-gray-600">
-                                                                       Code: {user.outletData.code} 
+                                                                        Code: {user.outletData.code}
                                                                     </span>
                                                                     <span className="text-xs text-gray-500 capitalize">
                                                                         {user.outletData.footfallType}
@@ -806,7 +797,7 @@ const UserManagement = () => {
                                     {/* Action Buttons */}
                                     <div className="flex flex-col sm:flex-row justify-between space-y-3 sm:space-y-0">
                                         <button
-                                            onClick={() => handleEdit(user)}
+                                            onClick={() => setEditingUser(user)}
                                             className="flex items-center justify-center space-x-3 bg-blue-50 hover:bg-blue-100 border border-blue-200 text-blue-700 px-6 py-3 rounded-xl transition-all duration-200 hover:shadow-md flex-1 sm:mr-3"
                                         >
                                             <svg
@@ -822,7 +813,7 @@ const UserManagement = () => {
                                                     d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
                                                 />
                                             </svg>
-                                            <span className="text-base font-semibold">Edit User</span>
+                                            <span className="text-base font-semibold">Edit Role</span>
                                         </button>
 
                                         <button
@@ -951,7 +942,7 @@ const UserManagement = () => {
                         </p>
                         {!searchTerm && roleFilter === 'all' && (
                             <button
-                                onClick={() => setShowForm(true)}
+                                onClick={() => setShowAddUserModal(true)}
                                 className="bg-gradient-to-r from-blue-600 to-purple-600 text-white px-6 sm:px-8 py-3 rounded-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 text-sm sm:text-base"
                             >
                                 Add New User

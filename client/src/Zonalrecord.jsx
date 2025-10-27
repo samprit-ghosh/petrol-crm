@@ -1,8 +1,7 @@
-
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { fetchZonesData, clearError } from './store/zonesSlice';
-import axiosInstance from '../src/utils/axiosConfig'; // Make sure to import your axios instance
+import axiosInstance from '../src/utils/axiosConfig';
 
 const ZoneOutletManagement = () => {
   const dispatch = useDispatch();
@@ -14,6 +13,7 @@ const ZoneOutletManagement = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [showAddOutletModal, setShowAddOutletModal] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
+  const [notifications, setNotifications] = useState([]);
   const [newOutlet, setNewOutlet] = useState({
     name: '',
     code: '',
@@ -26,6 +26,70 @@ const ZoneOutletManagement = () => {
 
   const outletsPerPage = 1;
 
+  // Notification system
+  const showNotification = (message, type = 'info', duration = 5000) => {
+    const id = Date.now() + Math.random();
+    const notification = { id, message, type, duration };
+    
+    setNotifications(prev => [...prev, notification]);
+    
+    if (duration > 0) {
+      setTimeout(() => {
+        removeNotification(id);
+      }, duration);
+    }
+    
+    return id;
+  };
+
+  const removeNotification = (id) => {
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+  };
+
+  // Notification component
+  const NotificationContainer = () => (
+    <div className="fixed top-4 right-4 z-50 space-y-2 max-w-sm">
+      {notifications.map((notification) => (
+        <div
+          key={notification.id}
+          className={`p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ${
+            notification.type === 'success'
+              ? 'bg-green-50 border-green-500 text-green-800'
+              : notification.type === 'warning'
+              ? 'bg-yellow-50 border-yellow-500 text-yellow-800'
+              : notification.type === 'error'
+              ? 'bg-red-50 border-red-500 text-red-800'
+              : 'bg-blue-50 border-blue-500 text-blue-800'
+          }`}
+        >
+          <div className="flex items-start justify-between">
+            <div className="flex items-center">
+              {notification.type === 'success' && (
+                <span className="text-green-500 mr-2">✅</span>
+              )}
+              {notification.type === 'warning' && (
+                <span className="text-yellow-500 mr-2">⚠️</span>
+              )}
+              {notification.type === 'error' && (
+                <span className="text-red-500 mr-2">❌</span>
+              )}
+              {notification.type === 'info' && (
+                <span className="text-blue-500 mr-2">ℹ️</span>
+              )}
+              <p className="text-sm font-medium">{notification.message}</p>
+            </div>
+            <button
+              onClick={() => removeNotification(notification.id)}
+              className="ml-4 text-gray-400 hover:text-gray-600 transition-colors"
+            >
+              ✕
+            </button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+
   // Fetch data on component mount
   useEffect(() => {
     dispatch(fetchZonesData());
@@ -33,6 +97,8 @@ const ZoneOutletManagement = () => {
 
   // Transform Redux zones data to work with this component
   const zoneData = zonesData || {};
+
+
 
   // Calculate zone stats dynamically
   const zoneStats = Object.keys(zoneData).reduce((stats, zoneName) => {
@@ -53,11 +119,12 @@ const ZoneOutletManagement = () => {
     setSearchTerm('');
     setStatusFilter('all');
     setCurrentPage(1);
+    showNotification(`Switched to ${zone} zone`, 'info', 3000);
   };
 
   const handleAddOutlet = () => {
     if (!selectedZone) {
-      alert('Please select a zone first');
+      showNotification('Please select a zone first', 'warning');
       return;
     }
     setShowAddOutletModal(true);
@@ -66,6 +133,17 @@ const ZoneOutletManagement = () => {
   const handleSubmitOutlet = async (e) => {
     e.preventDefault();
     
+    // Validation
+    if (!newOutlet.name.trim()) {
+      showNotification('Outlet name is required', 'warning');
+      return;
+    }
+
+    if (!newOutlet.address.trim()) {
+      showNotification('Outlet address is required', 'warning');
+      return;
+    }
+
     try {
       setSubmitLoading(true);
       
@@ -74,7 +152,7 @@ const ZoneOutletManagement = () => {
       const zoneId = firstOutletInZone?.zone?._id;
 
       if (!zoneId) {
-        alert('Could not find zone ID. Please try again.');
+        showNotification('Could not find zone ID. Please try again.', 'error');
         return;
       }
 
@@ -82,7 +160,7 @@ const ZoneOutletManagement = () => {
       const outletData = {
         name: newOutlet.name,
         code: newOutlet.code || `OUT${Date.now().toString().slice(-6)}`,
-        zone: zoneId, // Use the actual zone ID
+        zone: zoneId,
         footfallType: newOutlet.footfallType,
         address: newOutlet.address,
         phone: newOutlet.phone,
@@ -96,7 +174,7 @@ const ZoneOutletManagement = () => {
       const response = await axiosInstance.post('/outlets', outletData);
       
       // Refresh the zones data to include the new outlet
-      dispatch(fetchZonesData());
+      await dispatch(fetchZonesData());
       
       // Reset form and close modal
       setNewOutlet({
@@ -111,11 +189,12 @@ const ZoneOutletManagement = () => {
       setShowAddOutletModal(false);
       
       // Show success message
-      alert('Outlet added successfully!');
+      showNotification('Outlet added successfully!', 'success');
       
     } catch (error) {
       console.error('Error adding outlet:', error);
-      alert('Failed to add outlet. Please try again.');
+      const errorMessage = error.response?.data?.message || 'Failed to add outlet. Please try again.';
+      showNotification(errorMessage, 'error');
     } finally {
       setSubmitLoading(false);
     }
@@ -162,18 +241,23 @@ const ZoneOutletManagement = () => {
   const goToPage = (page) => {
     if (page >= 1 && page <= totalPages) {
       setCurrentPage(page);
+      showNotification(`Navigated to page ${page}`, 'info', 2000);
     }
   };
 
   const nextPage = () => {
     if (currentPage < totalPages) {
       setCurrentPage(currentPage + 1);
+    } else {
+      showNotification('You are already on the last page', 'info', 2000);
     }
   };
 
   const prevPage = () => {
     if (currentPage > 1) {
       setCurrentPage(currentPage - 1);
+    } else {
+      showNotification('You are already on the first page', 'info', 2000);
     }
   };
 
@@ -210,16 +294,29 @@ const ZoneOutletManagement = () => {
   const handleRetry = () => {
     dispatch(clearError());
     dispatch(fetchZonesData());
+    showNotification('Retrying to fetch data...', 'info');
   };
 
-  console.log(zoneData)
+  const handleClearFilters = () => {
+    setSearchTerm('');
+    setStatusFilter('all');
+    showNotification('Filters cleared', 'info', 2000);
+  };
+
+  const handleSearch = (term) => {
+    setSearchTerm(term);
+    if (term) {
+      showNotification(`Searching for: ${term}`, 'info', 2000);
+    }
+  };
 
   // Show error state if there's an error
   if (error && !error.includes('401')) {
     return (
       <div className="max-w-7xl mx-auto p-6">
-        <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
-          <div className="text-lg text-red-600 mb-2">Error Loading Data</div>
+        <div className="bg-white rounded-xl shadow-md border border-red-200 p-6 text-center">
+          <div className="text-red-500 text-4xl mb-4">❌</div>
+          <div className="text-lg text-red-600 mb-2 font-semibold">Error Loading Data</div>
           <div className="text-sm text-gray-500 mb-4">{error}</div>
           <button
             onClick={handleRetry}
@@ -234,10 +331,25 @@ const ZoneOutletManagement = () => {
 
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6">
+      {/* Notification Container */}
+      <NotificationContainer />
+
       {/* Header */}
       <div className="mb-8">
         <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Zone & Outlet Management</h1>
         <p className="text-gray-600">Select a zone to view and manage its outlets</p>
+        
+        {/* Global Stats Alert */}
+        {totalOutlets === 0 && !loading && (
+          <div className="mt-4 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <div className="flex items-center">
+              <span className="text-yellow-500 mr-2">⚠️</span>
+              <p className="text-yellow-800 text-sm">
+                <strong>No outlets found.</strong> Start by adding your first outlet to a zone.
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
@@ -258,40 +370,49 @@ const ZoneOutletManagement = () => {
             ) : (
               <>
                 <div className="space-y-3">
-                  {Object.keys(zoneData).map((zoneName) => (
-                    <button
-                      key={zoneName}
-                      onClick={() => handleZoneSelect(zoneName)}
-                      className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${selectedZone === zoneName
-                          ? 'border-blue-500 bg-blue-50 shadow-md'
-                          : 'border-gray-200 bg-white hover:border-gray-300'
+                  {Object.keys(zoneData).length === 0 ? (
+                    <div className="text-center py-4">
+                      <div className="text-gray-400 text-2xl mb-2">🏢</div>
+                      <p className="text-gray-500 text-sm">No zones available</p>
+                    </div>
+                  ) : (
+                    Object.keys(zoneData).map((zoneName) => (
+                      <button
+                        key={zoneName}
+                        onClick={() => handleZoneSelect(zoneName)}
+                        className={`w-full p-4 rounded-lg border-2 transition-all duration-200 text-left ${
+                          selectedZone === zoneName
+                            ? 'border-blue-500 bg-blue-50 shadow-md'
+                            : 'border-gray-200 bg-white hover:border-gray-300'
                         }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 flex items-center gap-2">
-                            {getZoneIcon(zoneName)} {zoneName}
-                          </h3>
-                          <p className="text-sm text-gray-600 mt-1">
-                            {zoneStats[zoneName]?.total || 0} outlets ({zoneStats[zoneName]?.active || 0} active)
-                          </p>
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h3 className="font-semibold text-gray-900 flex items-center gap-2">
+                              {getZoneIcon(zoneName)} {zoneName}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1">
+                              {zoneStats[zoneName]?.total || 0} outlets ({zoneStats[zoneName]?.active || 0} active)
+                            </p>
+                          </div>
+                          {selectedZone === zoneName && (
+                            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                          )}
                         </div>
-                        {selectedZone === zoneName && (
-                          <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-                        )}
-                      </div>
-                    </button>
-                  ))}
+                      </button>
+                    ))
+                  )}
                 </div>
 
                 {/* Add Outlet Button */}
                 <button
                   onClick={handleAddOutlet}
                   disabled={!selectedZone || loading}
-                  className={`w-full mt-4 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${selectedZone && !loading
+                  className={`w-full mt-4 py-3 px-4 rounded-lg font-medium transition-all duration-200 ${
+                    selectedZone && !loading
                       ? 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm'
                       : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                    }`}
+                  }`}
                 >
                   + Add New Outlet
                 </button>
@@ -357,7 +478,7 @@ const ZoneOutletManagement = () => {
                       type="text"
                       placeholder="Search outlets by name, code, address, or manager..."
                       value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
+                      onChange={(e) => handleSearch(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
                   </div>
@@ -372,7 +493,7 @@ const ZoneOutletManagement = () => {
                       <option value="inactive">Inactive</option>
                     </select>
                     <button
-                      onClick={() => { setSearchTerm(''); setStatusFilter('all'); }}
+                      onClick={handleClearFilters}
                       className="px-4 py-2 bg-gray-100 border border-gray-300 rounded-lg hover:bg-gray-200 transition-colors duration-200"
                     >
                       Clear
@@ -394,7 +515,11 @@ const ZoneOutletManagement = () => {
                               Code: {outlet.code} • {getFootfallIcon(outlet.footfallType)}
                             </p>
                           </div>
-                          <span className="px-3 py-1 rounded-full text-sm font-medium bg-green-100 text-green-800">
+                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                            outlet.status === 'active' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
                             {outlet.status === 'active' ? 'Active' : 'Inactive'}
                           </span>
                         </div>
@@ -463,10 +588,11 @@ const ZoneOutletManagement = () => {
                           <button
                             onClick={prevPage}
                             disabled={currentPage === 1}
-                            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 ${currentPage === 1
+                            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 ${
+                              currentPage === 1
                                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                 : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                              }`}
+                            }`}
                           >
                             Prev
                           </button>
@@ -475,10 +601,11 @@ const ZoneOutletManagement = () => {
                               <button
                                 key={number}
                                 onClick={() => goToPage(number)}
-                                className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium min-w-[28px] sm:min-w-10 ${currentPage === number
+                                className={`px-2.5 sm:px-3 py-1.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium min-w-[28px] sm:min-w-10 ${
+                                  currentPage === number
                                     ? "bg-blue-600 text-white border-blue-600"
                                     : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                                  }`}
+                                }`}
                               >
                                 {number}
                               </button>
@@ -487,10 +614,11 @@ const ZoneOutletManagement = () => {
                           <button
                             onClick={nextPage}
                             disabled={currentPage === totalPages}
-                            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 ${currentPage === totalPages
+                            className={`px-2 sm:px-4 py-1.5 sm:py-2 rounded-lg border text-xs sm:text-sm font-medium transition-all duration-200 ${
+                              currentPage === totalPages
                                 ? "bg-gray-100 text-gray-400 cursor-not-allowed"
                                 : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                              }`}
+                            }`}
                           >
                             Next
                           </button>
@@ -568,19 +696,17 @@ const ZoneOutletManagement = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Outlet Address</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Outlet Address *</label>
                 <textarea
                   name="address"
-                  value={newOutlet.description}
+                  value={newOutlet.address}
                   onChange={handleInputChange}
                   rows="3"
+                  required
                   className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="Enter full address"
                 />
               </div>
-              
-       
-
               
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Footfall Type *</label>
