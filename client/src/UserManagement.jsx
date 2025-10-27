@@ -3,7 +3,7 @@ import { useSelector, useDispatch } from 'react-redux';
 import { fetchAllUsers, createUser, updateUser, deleteUser } from './store/usersSlice';
 import { fetchZonesData } from './store/zonesSlice';
 import AddNewUser from './AddNewUser';
-import EditUser from './EditUser';
+import EditUser from './Edituser';
 
 const UserManagement = () => {
     const dispatch = useDispatch();
