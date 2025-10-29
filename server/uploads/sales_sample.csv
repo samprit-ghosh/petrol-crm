@@ -1,0 +1,4 @@
+outletCode,date,petrol_standard,diesel_standard,premium_products,lube_sales,additive_sales
+OUT001,2025-10-01,1200,800,150,40,10
+OUT002,2025-10-01,900,1000,200,60,15
+OUT003,2025-10-01,1300,950,180,50,8
