@@ -314,8 +314,8 @@ function Graph() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4">
-      <div className="w-full mx-auto w-full">
+    <div className="min-h-screen bg-gray-50">
+      <div className="w-full mx-auto">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Outlet Analytics Dashboard</h1>

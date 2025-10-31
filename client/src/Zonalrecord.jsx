@@ -504,87 +504,93 @@ const ZoneOutletManagement = () => {
                       </div>
                     ))}
 
-                    {totalPages > 1 && (
-                      <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 pt-6 gap-3 w-full">
+        {totalPages > 1 && (
+  <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 pt-6 gap-4 w-full">
 
-                        <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
-                          Showing outlet {startIndex + 1} of {filteredOutlets.length}
-                        </div>
+    {/* Showing Info */}
+    <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+      Showing outlet {startIndex + 1} of {filteredOutlets.length}
+    </div>
 
-                        <div className="flex items-center gap-2">
+    {/* Pagination Section */}
+    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
 
-                          {/* Prev Button */}
-                          <button
-                            onClick={prevPage}
-                            disabled={currentPage === 1}
-                            className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition ${currentPage === 1
-                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                              }`}
-                          >
-                            Prev
-                          </button>
+      {/* Page Buttons + Prev/Next */}
+      <div className="flex flex-col sm:flex-row items-center gap-2 w-full justify-center">
 
-                          {/* Page Buttons */}
-                          <div className="flex gap-1">
+        {/* Prev Button */}
+        <button
+          onClick={prevPage}
+          disabled={currentPage === 1}
+          className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition w-full sm:w-auto
+            ${currentPage === 1
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+            }`}
+        >
+          Prev
+        </button>
 
-                            {currentPage > 3 && (
-                              <>
-                                <button
-                                  onClick={() => goToPage(1)}
-                                  className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
-                                >
-                                  1
-                                </button>
-                                <span className="text-gray-500 px-2">...</span>
-                              </>
-                            )}
+        {/* Page Buttons */}
+        <div className="flex flex-wrap justify-center gap-1">
+          {currentPage > 3 && (
+            <>
+              <button
+                onClick={() => goToPage(1)}
+                className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
+              >
+                1
+              </button>
+              <span className="text-gray-500 px-2">...</span>
+            </>
+          )}
 
-                            {Array.from({ length: totalPages }, (_, i) => i + 1)
-                              .slice(Math.max(0, currentPage - 3), currentPage + 2)
-                              .map((number) => (
-                                <button
-                                  key={number}
-                                  onClick={() => goToPage(number)}
-                                  className={`px-3 py-1.5 rounded-full min-w-[32px] border text-xs sm:text-sm font-medium transition ${currentPage === number
-                                    ? "bg-blue-600 text-white border-blue-600"
-                                    : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                                    }`}
-                                >
-                                  {number}
-                                </button>
-                              ))}
+          {Array.from({ length: totalPages }, (_, i) => i + 1)
+            .slice(Math.max(0, currentPage - 3), currentPage + 2)
+            .map((number) => (
+              <button
+                key={number}
+                onClick={() => goToPage(number)}
+                className={`px-3 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition
+                  ${currentPage === number
+                    ? "bg-blue-600 text-white border-blue-600"
+                    : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                  }`}
+              >
+                {number}
+              </button>
+            ))}
 
-                            {currentPage < totalPages - 2 && (
-                              <>
-                                <span className="text-gray-500 px-2">...</span>
-                                <button
-                                  onClick={() => goToPage(totalPages)}
-                                  className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
-                                >
-                                  {totalPages}
-                                </button>
-                              </>
-                            )}
+          {currentPage < totalPages - 2 && (
+            <>
+              <span className="text-gray-500 px-2">...</span>
+              <button
+                onClick={() => goToPage(totalPages)}
+                className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
+              >
+                {totalPages}
+              </button>
+            </>
+          )}
+        </div>
 
-                          </div>
+        {/* Next Button */}
+        <button
+          onClick={nextPage}
+          disabled={currentPage === totalPages}
+          className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition w-full sm:w-auto
+            ${currentPage === totalPages
+              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+            }`}
+        >
+          Next
+        </button>
+      </div>
+    </div>
+  </div>
+)}
 
-                          {/* Next Button */}
-                          <button
-                            onClick={nextPage}
-                            disabled={currentPage === totalPages}
-                            className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition ${currentPage === totalPages
-                              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-                              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                              }`}
-                          >
-                            Next
-                          </button>
-
-                        </div>
-                      </div>
-
-                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12">

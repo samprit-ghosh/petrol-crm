@@ -1,13 +1,43 @@
 import React, { useEffect } from 'react';
-import { useSelector } from 'react-redux';
+
 import UserManagement from './UserManagement';
 import CompactZoneView from './CompactZoneView';
 import Grapgh from './grapgh';
+import { fetchZonesData, clearError } from './store/zonesSlice';
 import { useNavigate } from 'react-router-dom';
-
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchAllUsers, createUser, updateUser, deleteUser } from './store/usersSlice';
 const Dashboard = () => {
   // Get user data from Redux store
-  const { user, isAuthenticated, token } = useSelector((state) => state.auth);
+  const dispatch = useDispatch();
+  const { user, isAuthenticated, token, } = useSelector((state) => state.auth);
+  const { users: reduxUsers} = useSelector((state) => state.users);
+  const { zones: zonesData, loading, error } = useSelector((state) => state.zones);
+ const totalUsers = reduxUsers?.length || 0;
+
+
+
+
+ useEffect(() => {
+    dispatch(fetchAllUsers());
+    dispatch(fetchZonesData());
+  }, [dispatch]);
+
+  const zoneData = zonesData || {};
+
+  const zoneStats = Object.keys(zoneData).reduce((stats, zoneName) => {
+    const outlets = zoneData[zoneName] || [];
+    stats[zoneName] = {
+      total: outlets.length,
+      active: outlets.filter(outlet => outlet.status === 'active').length,
+      inactive: outlets.filter(outlet => outlet.status === 'inactive').length
+    };
+    return stats;
+  }, {});
+
+  const totalOutlets = Object.values(zoneStats).reduce((sum, stat) => sum + stat.total, 0);
+
+
 
   // Mock data for UI demonstration (fallback if no user data)
   const currentUser = user || {
@@ -39,12 +69,6 @@ const Dashboard = () => {
     { label: 'System Reports', icon: '📈', description: 'View analytics and reports', path: '/system-reports' },
   ];
 
-  const outletStats = [
-    { name: 'Outlet A', entries: 145, status: 'active' },
-    { name: 'Outlet B', entries: 89, status: 'active' },
-    { name: 'Outlet C', entries: 203, status: 'active' },
-    { name: 'Outlet D', entries: 67, status: 'inactive' }
-  ];
 
   const getActivityIcon = (type) => {
     const icons = {
@@ -60,41 +84,41 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   // Console log user data when component mounts or when user data changes
-  useEffect(() => {
-    console.log("🏠 DASHBOARD COMPONENT LOADED");
-    console.log("=== AUTHENTICATION STATUS ===");
-    console.log("Is Authenticated:", isAuthenticated);
-    console.log("Has Token:", !!token);
-    console.log("Has User Data:", !!user);
+  // useEffect(() => {
+  //   console.log("🏠 DASHBOARD COMPONENT LOADED");
+  //   console.log("=== AUTHENTICATION STATUS ===");
+  //   console.log("Is Authenticated:", isAuthenticated);
+  //   console.log("Has Token:", !!token);
+  //   console.log("Has User Data:", !!user);
     
-    if (isAuthenticated && user) {
-      console.log("🎯 LOGGED IN USER DATA ON DASHBOARD:");
-      console.log("=== USER DETAILS ===");
-      console.log("Full User Object:", user);
-      console.log("User Email:", user.email);
-      console.log("User Name:", user.name || user.username || "Not provided");
-      console.log("User Role:", user.role || "Not specified");
-      console.log("User ID:", user.id || user._id || "Not available");
+  //   if (isAuthenticated && user) {
+  //     console.log("🎯 LOGGED IN USER DATA ON DASHBOARD:");
+  //     console.log("=== USER DETAILS ===");
+  //     console.log("Full User Object:", user);
+  //     console.log("User Email:", user.email);
+  //     console.log("User Name:", user.name || user.username || "Not provided");
+  //     console.log("User Role:", user.role || "Not specified");
+  //     console.log("User ID:", user.id || user._id || "Not available");
       
-      // Log all user properties
-      console.log("=== ALL USER PROPERTIES ===");
-      Object.keys(user).forEach(key => {
-        console.log(`${key}:`, user[key]);
-      });
+  //     // Log all user properties
+  //     console.log("=== ALL USER PROPERTIES ===");
+  //     Object.keys(user).forEach(key => {
+  //       console.log(`${key}:`, user[key]);
+  //     });
 
-      console.log("=== STORAGE VERIFICATION ===");
-      console.log("LocalStorage Token exists:", !!localStorage.getItem('token'));
-      console.log("LocalStorage User exists:", !!localStorage.getItem('user'));
+  //     console.log("=== STORAGE VERIFICATION ===");
+  //     console.log("LocalStorage Token exists:", !!localStorage.getItem('token'));
+  //     console.log("LocalStorage User exists:", !!localStorage.getItem('user'));
       
-      if (localStorage.getItem('user')) {
-        const storedUser = JSON.parse(localStorage.getItem('user'));
-        console.log("Stored User Data:", storedUser);
-      }
-    } else {
-      console.log("❌ No user data available - using fallback mock data");
-      console.log("Current fallback user:", currentUser);
-    }
-  }, [isAuthenticated, user, token, currentUser]);
+  //     if (localStorage.getItem('user')) {
+  //       const storedUser = JSON.parse(localStorage.getItem('user'));
+  //       console.log("Stored User Data:", storedUser);
+  //     }
+  //   } else {
+  //     console.log("❌ No user data available - using fallback mock data");
+  //     console.log("Current fallback user:", currentUser);
+  //   }
+  // }, [isAuthenticated, user, token, currentUser]);
 
   return (
     <div className=" bg-gray-50">
@@ -105,7 +129,7 @@ const Dashboard = () => {
 
             {/* Title */}
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900 text-center sm:text-left">
-              Admin Dashboard
+              Admin Dashboard 
             </h1>
 
             {/* Profile */}
@@ -140,7 +164,7 @@ const Dashboard = () => {
           <div className="flex flex-col md:flex-row justify-between items-start md:items-center">
             <div className="mb-6 md:mb-0">
               <h2 className="text-3xl font-bold mb-2">
-                Welcome back, {currentUser.name || 'Admin User'}! 👋
+                Welcome back, {currentUser.name || 'Admin User'}! 👋 
                 {user && <span className="text-green-300 ml-2">(Logged In)</span>}
               </h2>
               <p className="text-blue-100 text-lg">
@@ -149,11 +173,11 @@ const Dashboard = () => {
             </div>
             <div className="flex space-x-8">
               <div className="text-center">
-                <div className="text-4xl font-bold">{stats.activeUsers}</div>
+                <div className="text-4xl font-bold">{totalUsers}</div>
                 <div className="text-blue-200 text-sm">Active Users</div>
               </div>
               <div className="text-center">
-                <div className="text-4xl font-bold">{outletStats.length}</div>
+                <div className="text-4xl font-bold">{totalOutlets}</div>
                 <div className="text-blue-200 text-sm">Outlets</div>
               </div>
             </div>

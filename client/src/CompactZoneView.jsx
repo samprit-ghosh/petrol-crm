@@ -233,65 +233,104 @@ const CompactZoneView = () => {
   }
 
   return (
-    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 w-full mx-auto">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-6 gap-4">
-        <h2 className="text-xl font-bold text-gray-900 mb-2 sm:mb-0 flex items-center gap-2">
-          {getZoneIcon(selectedZone)} Zone Outlets
-        </h2>
-        {loading ? (
-          <div className="text-base text-gray-500">Loading zones...</div>
-        ) : (
-          zoneNames.length > 0 && (
-            <ZoneSelector 
-              value={selectedZone} 
-              onChange={setSelectedZone} 
-              zones={availableZones} 
-            />
-          )
-        )}
+<div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full mx-auto">
+  {/* Header */}
+  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
+    <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 text-center sm:text-left justify-center sm:justify-start">
+      {/* Hide icon on mobile */}
+      <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
+      Zone Outlets
+    </h2>
+
+    {loading ? (
+      <div className="text-sm sm:text-base text-gray-500 text-center sm:text-left">
+        Loading zones...
+      </div>
+    ) : (
+      zoneNames.length > 0 && (
+        <div className="w-full sm:w-auto">
+          <ZoneSelector
+            value={selectedZone}
+            onChange={setSelectedZone}
+            zones={availableZones}
+          />
+        </div>
+      )
+    )}
+  </div>
+
+  {/* Zone Info */}
+  {zoneNames.length > 0 && (
+    <div className="mb-3 sm:mb-4 text-center sm:text-left">
+      <h3 className="text-base sm:text-lg font-semibold text-gray-800 capitalize mb-1 flex items-center justify-center sm:justify-start gap-2">
+        {/* Hide icon on mobile */}
+        <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
+        {selectedZone}
+      </h3>
+      <div className="text-xs sm:text-sm text-gray-500">
+        {outlets.length} outlet{outlets.length !== 1 ? "s" : ""} in this zone
+      </div>
+    </div>
+  )}
+
+  {/* Outlet List */}
+  {loading ? (
+    <LoadingSkeleton />
+  ) : zoneNames.length === 0 ? (
+    <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg border border-gray-200">
+      <div className="text-base sm:text-lg text-gray-500 mb-2">No zones available</div>
+      <div className="text-xs sm:text-sm text-gray-400">
+        Check if outlets are properly assigned to zones
+      </div>
+    </div>
+  ) : (
+    <>
+      <div className="space-y-3">
+        {paginatedOutlets.map((outlet, index) => (
+          <div
+            key={index}
+            className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-sm transition"
+          >
+            <div>
+              <h4 className="text-sm sm:text-base font-semibold text-gray-900">{outlet.name}</h4>
+              <p className="text-xs sm:text-sm text-gray-600">
+                Code: {outlet.code} • {outlet.footfallType}
+              </p>
+            </div>
+
+            {/* Active badge — visible at bottom on mobile, right on desktop */}
+            <div className="mt-2 sm:mt-0">
+              <span className="inline-block px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full text-center w-full sm:w-auto">
+                Active
+              </span>
+            </div>
+          </div>
+        ))}
       </div>
 
-      {zoneNames.length > 0 && (
-        <div className="mb-2">
-          <h3 className="text-lg font-semibold text-gray-800 capitalize mb-1">
-            {getZoneIcon(selectedZone)} {selectedZone}
-          </h3>
-          <div className="text-sm text-gray-500 mb-4">
-            {outlets.length} outlet{outlets.length !== 1 ? "s" : ""} in this zone
-          </div>
-        </div>
+      {outlets.length > itemsPerPage && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
       )}
+    </>
+  )}
 
-      {loading ? (
-        <LoadingSkeleton />
-      ) : zoneNames.length === 0 ? (
-        <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
-          <div className="text-lg text-gray-500 mb-2">No zones available</div>
-          <div className="text-sm text-gray-400">Check if outlets are properly assigned to zones</div>
-        </div>
-      ) : (
-        <>
-          <OutletList outlets={paginatedOutlets} />
-          {outlets.length > itemsPerPage && (
-            <Pagination 
-              currentPage={currentPage} 
-              totalPages={totalPages} 
-              onPageChange={handlePageChange} 
-            />
-          )}
-        </>
-      )}
+  {/* Manage Button */}
+  <button
+    type="button"
+    className="w-full mt-4 sm:mt-6 text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 py-2.5 sm:py-3 border border-gray-300 rounded-lg hover:bg-blue-50 transition-colors duration-200 flex items-center justify-center gap-2"
+    aria-label="Manage all outlets"
+    onClick={() => handleNavigate('/zone')}
+  >
+    <span>Manage All Outlets</span>
+    <span>➡️</span>
+  </button>
+</div>
 
-      <button
-        type="button"
-        className="w-full mt-6 text-base font-medium text-blue-600 hover:text-blue-800 py-3 border border-gray-300 rounded-lg hover:bg-blue-50 transition-colors duration-200 flex items-center justify-center gap-2"
-        aria-label="Manage all outlets"
-        onClick={() => handleNavigate("/zone")}
-      >
-        <span>Manage All Outlets</span>
-        <span>➡️</span>
-      </button>
-    </div>
+
   );
 };
 
