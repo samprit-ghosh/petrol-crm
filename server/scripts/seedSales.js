@@ -4,7 +4,7 @@ import connectDB from "../config/db.js";
 import Outlet from "../models/Outlet.js";
 import Sale from "../models/Sale.js";
 
-dotenv.config();
+dotenv.config({ path: "../.env" });
 connectDB();
 
 const seedSales = async () => {
