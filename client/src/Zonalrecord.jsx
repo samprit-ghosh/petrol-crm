@@ -18,10 +18,33 @@ const ZoneOutletManagement = () => {
     name: '',
     code: '',
     address: '',
-    phone: '',
-    manager: '',
-    revenue: '',
-    footfallType: ''
+    footfallType: '',
+    meta: {
+      region: '',
+      district: '',
+      dealer: {
+        name: '',
+        contact: '',
+        email: ''
+      },
+      roManager: {
+        name: '',
+        email: ''
+      },
+      sa: '',
+      so: {
+        name: '',
+        phone: '',
+        email: ''
+      },
+      facilities: {
+        noOfCSA: 0,
+        hasSittingSpace: false,
+        hasIslandSpace: false,
+        standingCapacity: 0
+      },
+      nearbyOutlets: []
+    }
   });
 
   const outletsPerPage = 1;
@@ -67,6 +90,61 @@ const ZoneOutletManagement = () => {
     setShowAddOutletModal(true);
   };
 
+  // Handlers for nested form data
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    
+    if (name.includes('.')) {
+      const path = name.split('.');
+      setNewOutlet(prev => {
+        const updated = { ...prev };
+        let current = updated;
+        
+        for (let i = 0; i < path.length - 1; i++) {
+          current[path[i]] = { ...current[path[i]] };
+          current = current[path[i]];
+        }
+        
+        current[path[path.length - 1]] = value;
+        return updated;
+      });
+    } else {
+      setNewOutlet(prev => ({
+        ...prev,
+        [name]: value
+      }));
+    }
+  };
+
+  const handleCheckboxChange = (e) => {
+    const { name, checked } = e.target;
+    const path = name.split('.');
+    
+    setNewOutlet(prev => {
+      const updated = { ...prev };
+      let current = updated;
+      
+      for (let i = 0; i < path.length - 1; i++) {
+        current[path[i]] = { ...current[path[i]] };
+        current = current[path[i]];
+      }
+      
+      current[path[path.length - 1]] = checked;
+      return updated;
+    });
+  };
+
+  const handleNearbyOutletsChange = (e) => {
+    const outlets = e.target.value.split(',').map(outlet => outlet.trim()).filter(outlet => outlet);
+    setNewOutlet(prev => ({
+      ...prev,
+      meta: {
+        ...prev.meta,
+        nearbyOutlets: outlets
+      }
+    }));
+  };
+
   const handleSubmitOutlet = async (e) => {
     e.preventDefault();
 
@@ -81,31 +159,79 @@ const ZoneOutletManagement = () => {
         return;
       }
 
+      // Prepare data according to your desired structure
       const outletData = {
-        name: newOutlet.name,
-        code: newOutlet.code || `OUT${Date.now().toString().slice(-6)}`,
+        name: newOutlet.name.trim(),
+        code: newOutlet.code.trim(),
         zone: zoneId,
+        address: newOutlet.address.trim(),
         footfallType: newOutlet.footfallType,
-        address: newOutlet.address,
-        phone: newOutlet.phone,
-        manager: newOutlet.manager,
-        revenue: newOutlet.revenue ? parseInt(newOutlet.revenue) : 0
+        meta: {
+          region: newOutlet.meta.region.trim(),
+          district: newOutlet.meta.district.trim(),
+          dealer: {
+            name: newOutlet.meta.dealer.name.trim(),
+            contact: newOutlet.meta.dealer.contact.trim(),
+            email: newOutlet.meta.dealer.email.trim()
+          },
+          roManager: {
+            name: newOutlet.meta.roManager.name.trim(),
+            email: newOutlet.meta.roManager.email.trim()
+          },
+          sa: newOutlet.meta.sa.trim(),
+          so: {
+            name: newOutlet.meta.so.name.trim(),
+            phone: newOutlet.meta.so.phone.trim(),
+            email: newOutlet.meta.so.email.trim()
+          },
+          facilities: {
+            noOfCSA: parseInt(newOutlet.meta.facilities.noOfCSA) || 0,
+            hasSittingSpace: Boolean(newOutlet.meta.facilities.hasSittingSpace),
+            hasIslandSpace: Boolean(newOutlet.meta.facilities.hasIslandSpace),
+            standingCapacity: parseInt(newOutlet.meta.facilities.standingCapacity) || 0
+          },
+          nearbyOutlets: newOutlet.meta.nearbyOutlets
+        }
       };
 
-      console.log('Submitting outlet data:', outletData);
+      console.log('Submitting outlet data:', JSON.stringify(outletData, null, 2));
 
       const response = await axiosInstance.post('/outlets', outletData);
 
       dispatch(fetchZonesData());
 
+      // Reset form
       setNewOutlet({
         name: '',
         code: '',
         address: '',
-        phone: '',
-        manager: '',
-        revenue: '',
-        footfallType: ''
+        footfallType: '',
+        meta: {
+          region: '',
+          district: '',
+          dealer: {
+            name: '',
+            contact: '',
+            email: ''
+          },
+          roManager: {
+            name: '',
+            email: ''
+          },
+          sa: '',
+          so: {
+            name: '',
+            phone: '',
+            email: ''
+          },
+          facilities: {
+            noOfCSA: 0,
+            hasSittingSpace: false,
+            hasIslandSpace: false,
+            standingCapacity: 0
+          },
+          nearbyOutlets: []
+        }
       });
       setShowAddOutletModal(false);
 
@@ -113,18 +239,14 @@ const ZoneOutletManagement = () => {
 
     } catch (error) {
       console.error('Error adding outlet:', error);
-      showNotification('Failed to add outlet. Please try again.', 'error');
+      console.error('Error response:', error.response?.data);
+      showNotification(
+        error.response?.data?.message || 'Failed to add outlet. Please try again.', 
+        'error'
+      );
     } finally {
       setSubmitLoading(false);
     }
-  };
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setNewOutlet(prev => ({
-      ...prev,
-      [name]: value
-    }));
   };
 
   const getFilteredOutlets = () => {
@@ -134,10 +256,12 @@ const ZoneOutletManagement = () => {
 
     if (searchTerm) {
       outlets = outlets.filter(outlet =>
-        outlet.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (outlet.address && outlet.address.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (outlet.manager && outlet.manager.toLowerCase().includes(searchTerm.toLowerCase())) ||
-        (outlet.code && outlet.code.toLowerCase().includes(searchTerm.toLowerCase()))
+        outlet.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        outlet.code?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        outlet.address?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        outlet.meta?.dealer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        outlet.meta?.roManager?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        outlet.meta?.so?.name?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
 
@@ -213,16 +337,16 @@ const ZoneOutletManagement = () => {
     dispatch(fetchZonesData());
   };
 
-  useEffect(() => {
-    if (selectedZone && zoneData[selectedZone] && zoneData[selectedZone].length > 0) {
-      console.log('First outlet in selected zone:', zoneData[selectedZone][0]);
-      console.log('Footfall type of first outlet:', zoneData[selectedZone][0].footfallType);
-    }
-  }, [selectedZone, zoneData]);
+  // Helper function to safely display data
+  const displayData = (data, fallback = 'Not specified') => {
+    if (data === null || data === undefined || data === '') return fallback;
+    if (typeof data === 'object' && Object.keys(data).length === 0) return fallback;
+    return data;
+  };
 
   if (error && !error.includes('401')) {
     return (
-      <div className="max-w-7xl mx-auto p-6">
+      <div className="max-w-7xl mx-auto p-20">
         <div className="bg-white rounded-xl shadow-md border border-gray-200 p-6 text-center">
           <div className="text-lg text-red-600 mb-2">Error Loading Data</div>
           <div className="text-sm text-gray-500 mb-4">{error}</div>
@@ -402,7 +526,7 @@ const ZoneOutletManagement = () => {
                   <div className="flex-1">
                     <input
                       type="text"
-                      placeholder="Search outlets by name, code, address, or manager..."
+                      placeholder="Search outlets by name, code, address, dealer, or manager..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -412,7 +536,7 @@ const ZoneOutletManagement = () => {
                     <select
                       value={statusFilter}
                       onChange={(e) => setStatusFilter(e.target.value)}
-                      className="px-5 py-2  border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      className="px-5 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
                     >
                       <option value="all">All Status</option>
                       <option value="active">Active</option>
@@ -431,166 +555,230 @@ const ZoneOutletManagement = () => {
               {/* Outlets Display */}
               <div className="p-6">
                 {currentOutlets.length > 0 ? (
-                  <div className="space-y-6">
+                  <div className="space-y-2">
                     {currentOutlets.map((outlet) => (
-                      <div key={outlet.id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-300 bg-white">
+                      <div key={outlet._id} className="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-all duration-300 bg-white">
                         <div className="flex items-start justify-between mb-4">
                           <div>
-                            <h3 className="text-xl font-semibold text-gray-900">{outlet.name}</h3>
+                            <h3 className="text-[14px] sm:text-lg md:text-xl font-semibold text-gray-900 leading-snug break-words">
+                              {displayData(outlet.name)}
+                            </h3>
                             <p className="text-sm text-gray-500 mt-1">
-                              Code: {outlet.code} • {getFootfallIcon(outlet.footfallType)}
+                              SAP Code: {displayData(outlet.code)} • {getFootfallIcon(outlet.footfallType)}
                             </p>
                           </div>
-                          <span className={`px-3 py-1 rounded-full text-sm font-medium ${outlet.status === 'active'
-                            ? 'bg-green-100 text-green-800 border border-green-200'
-                            : 'bg-red-100 text-red-800 border border-red-200'
-                            }`}>
+                          <span className={`rounded-full font-medium border
+                            ${outlet.status === 'active'
+                              ? 'bg-green-100 text-green-800 border-green-200'
+                              : 'bg-red-100 text-red-800 border-red-200'
+                            }
+                            text-[10px] sm:text-xs md:text-sm
+                            px-2.5 sm:px-3 py-0.5 sm:py-1
+                          `}>
                             {outlet.status === 'active' ? 'Active' : 'Inactive'}
                           </span>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
-                          <div className="space-y-3">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm text-gray-600">
+                          {/* Left Column - Basic Info */}
+                          <div className="space-y-4">
                             <div className="flex items-start">
-                              <div className="w-4 h-4 mr-3 text-gray-400 mt-0.5 flex-shrink-0">📍</div>
+                              <div className="w-5 h-5 mr-3 text-gray-400 mt-0.5 flex-shrink-0">🏢</div>
                               <div>
-                                <span className="font-medium text-gray-900">Outlet Id:</span>
-                                <p className="mt-1 text-md max-[350px]:text-xs">{outlet.id || 'Not specified'}</p>
+                                <span className="font-medium text-gray-900">Outlet ID:</span>
+                                <p className="mt-1 text-[11px] sm:text-sm leading-tight break-words text-gray-700">
+                                  {displayData(outlet._id)}
+                                </p>
                               </div>
                             </div>
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 mr-3 text-gray-400 flex-shrink-0">📞</div>
+                            
+                            <div className="flex items-start">
+                              <div className="w-5 h-5 mr-3 text-gray-400 mt-0.5 flex-shrink-0">📍</div>
                               <div>
-                                <span className="font-medium text-gray-900">SAP:</span>
-                                <p className="mt-1">{outlet.code || 'Not specified'}</p>
+                                <span className="font-medium text-gray-900">Address:</span>
+                                <p className="mt-1 text-sm">{displayData(outlet.address)}</p>
+                              </div>
+                            </div>
+
+                            <div className="flex items-start">
+                              <div className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0">👤</div>
+                              <div>
+                                <span className="font-medium text-gray-900">Dealer:</span>
+                                <p className="mt-1 text-sm">{displayData(outlet.meta?.dealer?.name)}</p>
+                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.dealer?.contact)}</p>
+                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.dealer?.email)}</p>
                               </div>
                             </div>
                           </div>
-                          <div className="space-y-3">
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 mr-3 text-gray-400 flex-shrink-0">👤</div>
+
+                          {/* Right Column - Management Info */}
+                          <div className="space-y-4">
+                            <div className="flex items-start">
+                              <div className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0">👨‍💼</div>
                               <div>
-                                <span className="font-medium text-gray-900">Manager:</span>
-                                <p className="mt-1">{outlet.address || 'Not assigned'}</p>
+                                <span className="font-medium text-gray-900">RO Manager:</span>
+                                <p className="mt-1 text-sm">{displayData(outlet.meta?.roManager?.name)}</p>
+                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.roManager?.email)}</p>
+                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.sa)}</p>
                               </div>
                             </div>
-                            <div className="flex items-center">
-                              <div className="w-4 h-4 mr-3 text-gray-400 flex-shrink-0">🏢</div>
-                              <div>
-                                <span className="font-medium text-gray-900">Footfall Type:</span>
-                                <p className="mt-1">{getFootfallIcon(outlet.footfallType)}</p>
-                              </div>
 
+                            <div className="flex items-start">
+                              <div className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0">📞</div>
+                              <div>
+                                <span className="font-medium text-gray-900">Sales Officer:</span>
+                                <p className="mt-1 text-sm">{displayData(outlet.meta?.so?.name)}</p>
+                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.so?.phone)}</p>
+                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.so?.email)}</p>
+                              </div>
                             </div>
 
+                            <div className="flex items-start">
+                              <div className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0">🏷️</div>
+                              <div>
+                                <span className="font-medium text-gray-900">Region & District:</span>
+                                <p className="mt-1 text-sm">{displayData(outlet.meta?.region)} • {displayData(outlet.meta?.district)}</p>
+                              </div>
+                            </div>
                           </div>
-
-                        </div>
-                        <div className="flex flex-col md:flex-row w-full md:items-center md:gap-3 justify-center mt-5">
-                          <span className="font-medium text-gray-900 whitespace-nowrap">
-                            🏢 Description:
-                          </span>
-                          <p className="mt-1 md:mt-0 md:flex-1 text-gray-700">
-                            {outlet.zone?.description || "Not specified"}
-                          </p>
                         </div>
 
+                        {/* Facilities Section */}
+                        <div className="mt-6 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <h4 className="font-medium text-gray-900 mb-3">Facilities & Capacity</h4>
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div className="text-center">
+                              <div className="text-lg">👥</div>
+                              <div className="font-medium text-gray-900">{displayData(outlet.meta?.facilities?.noOfCSA, 0)}</div>
+                              <div className="text-xs text-gray-500">CSAs</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg">🪑</div>
+                              <div className="font-medium text-gray-900">
+                                {outlet.meta?.facilities?.hasSittingSpace ? '✅ Yes' : '❌ No'}
+                              </div>
+                              <div className="text-xs text-gray-500">Sitting Space</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg">🏝️</div>
+                              <div className="font-medium text-gray-900">
+                                {outlet.meta?.facilities?.hasIslandSpace ? '✅ Yes' : '❌ No'}
+                              </div>
+                              <div className="text-xs text-gray-500">Island Space</div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-lg">🚶</div>
+                              <div className="font-medium text-gray-900">{displayData(outlet.meta?.facilities?.standingCapacity, 0)}</div>
+                              <div className="text-xs text-gray-500">Standing Cap.</div>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Nearby Outlets */}
+                        {outlet.meta?.nearbyOutlets && outlet.meta.nearbyOutlets.length > 0 && (
+                          <div className="mt-4">
+                            <span className="font-medium text-gray-900 text-sm">📍 Nearby Outlets: </span>
+                            <span className="text-sm text-gray-600">
+                              {outlet.meta.nearbyOutlets.join(', ')}
+                            </span>
+                          </div>
+                        )}
+
+                        {/* Timestamps */}
+                        <div className="mt-4 flex flex-wrap gap-4 text-xs text-gray-500">
+                          <span>Created: {outlet.createdAt ? new Date(outlet.createdAt).toLocaleDateString() : 'N/A'}</span>
+                          <span>Updated: {outlet.updatedAt ? new Date(outlet.updatedAt).toLocaleDateString() : 'N/A'}</span>
+                        </div>
 
                         <div className="flex gap-3 mt-6">
                           <button className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 py-2 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all duration-300 text-sm font-medium border border-gray-300">
                             View Details
                           </button>
+                          <button className="flex-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 py-2 rounded-lg hover:from-blue-200 hover:to-blue-300 transition-all duration-300 text-sm font-medium border border-blue-300">
+                            Edit Outlet
+                          </button>
                         </div>
                       </div>
                     ))}
 
-        {totalPages > 1 && (
-  <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 pt-6 gap-4 w-full">
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                      <div className="flex flex-col sm:flex-row items-center justify-between border-t border-gray-200 pt-6 gap-4 w-full">
+                        <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
+                          Showing outlet {startIndex + 1} of {filteredOutlets.length}
+                        </div>
 
-    {/* Showing Info */}
-    <div className="text-xs sm:text-sm text-gray-700 text-center sm:text-left">
-      Showing outlet {startIndex + 1} of {filteredOutlets.length}
-    </div>
+                        <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                          <div className="flex flex-col sm:flex-row items-center gap-2 w-full justify-center">
+                            <button
+                              onClick={prevPage}
+                              disabled={currentPage === 1}
+                              className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition w-full sm:w-auto
+                                ${currentPage === 1
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                                }`}
+                            >
+                              Prev
+                            </button>
 
-    {/* Pagination Section */}
-    <div className="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                            <div className="flex flex-wrap justify-center gap-1">
+                              {currentPage > 3 && (
+                                <>
+                                  <button
+                                    onClick={() => goToPage(1)}
+                                    className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
+                                  >
+                                    1
+                                  </button>
+                                  <span className="text-gray-500 px-2">...</span>
+                                </>
+                              )}
 
-      {/* Page Buttons + Prev/Next */}
-      <div className="flex flex-col sm:flex-row items-center gap-2 w-full justify-center">
+                              {Array.from({ length: totalPages }, (_, i) => i + 1)
+                                .slice(Math.max(0, currentPage - 3), currentPage + 2)
+                                .map((number) => (
+                                  <button
+                                    key={number}
+                                    onClick={() => goToPage(number)}
+                                    className={`px-3 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition
+                                      ${currentPage === number
+                                        ? "bg-blue-600 text-white border-blue-600"
+                                        : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                                      }`}
+                                  >
+                                    {number}
+                                  </button>
+                                ))}
 
-        {/* Prev Button */}
-        <button
-          onClick={prevPage}
-          disabled={currentPage === 1}
-          className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition w-full sm:w-auto
-            ${currentPage === 1
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-            }`}
-        >
-          Prev
-        </button>
+                              {currentPage < totalPages - 2 && (
+                                <>
+                                  <span className="text-gray-500 px-2">...</span>
+                                  <button
+                                    onClick={() => goToPage(totalPages)}
+                                    className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
+                                  >
+                                    {totalPages}
+                                  </button>
+                                </>
+                              )}
+                            </div>
 
-        {/* Page Buttons */}
-        <div className="flex flex-wrap justify-center gap-1">
-          {currentPage > 3 && (
-            <>
-              <button
-                onClick={() => goToPage(1)}
-                className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
-              >
-                1
-              </button>
-              <span className="text-gray-500 px-2">...</span>
-            </>
-          )}
-
-          {Array.from({ length: totalPages }, (_, i) => i + 1)
-            .slice(Math.max(0, currentPage - 3), currentPage + 2)
-            .map((number) => (
-              <button
-                key={number}
-                onClick={() => goToPage(number)}
-                className={`px-3 py-1.5 rounded-full border text-xs sm:text-sm font-medium transition
-                  ${currentPage === number
-                    ? "bg-blue-600 text-white border-blue-600"
-                    : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-                  }`}
-              >
-                {number}
-              </button>
-            ))}
-
-          {currentPage < totalPages - 2 && (
-            <>
-              <span className="text-gray-500 px-2">...</span>
-              <button
-                onClick={() => goToPage(totalPages)}
-                className="px-3 py-1 rounded-full border bg-white hover:bg-gray-50 text-gray-700 text-xs sm:text-sm"
-              >
-                {totalPages}
-              </button>
-            </>
-          )}
-        </div>
-
-        {/* Next Button */}
-        <button
-          onClick={nextPage}
-          disabled={currentPage === totalPages}
-          className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition w-full sm:w-auto
-            ${currentPage === totalPages
-              ? "bg-gray-100 text-gray-400 cursor-not-allowed"
-              : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
-            }`}
-        >
-          Next
-        </button>
-      </div>
-    </div>
-  </div>
-)}
-
+                            <button
+                              onClick={nextPage}
+                              disabled={currentPage === totalPages}
+                              className={`px-3 py-1.5 rounded-full text-xs sm:text-sm font-medium border transition w-full sm:w-auto
+                                ${currentPage === totalPages
+                                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                                  : "bg-white text-gray-700 hover:bg-gray-50 border-gray-300"
+                                }`}
+                            >
+                              Next
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ) : (
                   <div className="text-center py-12">
@@ -627,11 +815,9 @@ const ZoneOutletManagement = () => {
       {/* Add Outlet Modal */}
       {showAddOutletModal && (
         <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
-          {/* Modern Gradient Backdrop */}
           <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 via-purple-500/20 to-pink-500/20 backdrop-blur-sm"></div>
 
-          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto relative z-10 transform transition-all duration-300 scale-100">
-            {/* Modal Header with Gradient and Close Button */}
+          <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto relative z-10 transform transition-all duration-300 scale-100">
             <div className="p-6 border-b border-gray-200 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl relative">
               <button
                 onClick={() => setShowAddOutletModal(false)}
@@ -657,67 +843,301 @@ const ZoneOutletManagement = () => {
               </p>
             </div>
 
-            <form onSubmit={handleSubmitOutlet} className="p-6 space-y-4">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Outlet Name *</label>
-                <input
-                  type="text"
-                  name="name"
-                  value={newOutlet.name}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  placeholder="Enter outlet name"
-                />
+            <form onSubmit={handleSubmitOutlet} className="p-6 space-y-6">
+              {/* Basic Information */}
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Basic Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Outlet Name *</label>
+                    <input
+                      type="text"
+                      name="name"
+                      value={newOutlet.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter outlet name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SAP Code *</label>
+                    <input
+                      type="text"
+                      name="code"
+                      value={newOutlet.code}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="e.g., 41050977"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Address *</label>
+                  <textarea
+                    name="address"
+                    value={newOutlet.address}
+                    onChange={handleInputChange}
+                    rows="3"
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    placeholder="Enter full address"
+                  />
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Footfall Type *</label>
+                  <select
+                    name="footfallType"
+                    value={newOutlet.footfallType}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                  >
+                    <option value="">Select footfall type</option>
+                    <option value="urban">🏙️ Urban</option>
+                    <option value="highway">🛣️ Highway</option>
+                    <option value="rural">🌾 Rural</option>
+                  </select>
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Outlet Code *</label>
-                <input
-                  type="text"
-                  name="code"
-                  value={newOutlet.code}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  placeholder="e.g., 41045279"
-                />
+              {/* Region & District */}
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Location Information</h3>
+                <div className="grid grid-cols-1 gap-4">
+          
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">District *</label>
+                    <input
+                      type="text"
+                      name="meta.district"
+                      value={newOutlet.meta.district}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="e.g., South Goa"
+                    />
+                  </div>
+                </div>
               </div>
 
+              {/* Dealer Information */}
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Dealer Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Dealer Name *</label>
+                    <input
+                      type="text"
+                      name="meta.dealer.name"
+                      value={newOutlet.meta.dealer.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter dealer name"
+                    />
+                  </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Manager *</label>
-                <input
-                  name="address"
-                  value={newOutlet.address}
-                  onChange={handleInputChange}
-                  rows="3"
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                  placeholder="Enter full Name"
-                />
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Dealer Contact *</label>
+                    <input
+                      type="text"
+                      name="meta.dealer.contact"
+                      value={newOutlet.meta.dealer.contact}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter contact number"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Dealer Email</label>
+                  <input
+                    type="email"
+                    name="meta.dealer.email"
+                    value={newOutlet.meta.dealer.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    placeholder="Enter email address"
+                  />
+                </div>
               </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Footfall Type *</label>
-                <select
-                  name="footfallType"
-                  value={newOutlet.footfallType}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
-                >
-                  <option value="">Select footfall type</option>
-                  <option value="urban">🏙️ Urban</option>
-                  <option value="highway">🛣️ Highway</option>
-                  <option value="rural">🌾 Rural</option>
-                </select>
+              {/* RO Manager Information */}
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">RO Manager Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">RO Manager Name *</label>
+                    <input
+                      type="text"
+                      name="meta.roManager.name"
+                      value={newOutlet.meta.roManager.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter RO manager name"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SA Name *</label>
+                    <input
+                      type="text"
+                      name="meta.sa"
+                      value={newOutlet.meta.sa}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="e.g., Vasco Retail S.A."
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">RO Manager Email</label>
+                  <input
+                    type="email"
+                    name="meta.roManager.email"
+                    value={newOutlet.meta.roManager.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    placeholder="Enter email address"
+                  />
+                </div>
               </div>
 
+              {/* Sales Officer Information */}
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Sales Officer Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SO Name *</label>
+                    <input
+                      type="text"
+                      name="meta.so.name"
+                      value={newOutlet.meta.so.name}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter SO name"
+                    />
+                  </div>
 
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">SO Phone *</label>
+                    <input
+                      type="text"
+                      name="meta.so.phone"
+                      value={newOutlet.meta.so.phone}
+                      onChange={handleInputChange}
+                      required
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter phone number"
+                    />
+                  </div>
+                </div>
 
+                <div className="mt-4">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">SO Email *</label>
+                  <input
+                    type="email"
+                    name="meta.so.email"
+                    value={newOutlet.meta.so.email}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    placeholder="Enter email address"
+                  />
+                </div>
+              </div>
 
-              <div className="flex gap-3 pt-4">
+              {/* Facilities Information */}
+              <div className="border-b pb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Facilities Information</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Number of CSAs *</label>
+                    <input
+                      type="number"
+                      name="meta.facilities.noOfCSA"
+                      value={newOutlet.meta.facilities.noOfCSA}
+                      onChange={handleInputChange}
+                      required
+                      min="0"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter number of CSAs"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Standing Capacity *</label>
+                    <input
+                      type="number"
+                      name="meta.facilities.standingCapacity"
+                      value={newOutlet.meta.facilities.standingCapacity}
+                      onChange={handleInputChange}
+                      required
+                      min="0"
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                      placeholder="Enter standing capacity"
+                    />
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="meta.facilities.hasSittingSpace"
+                      checked={newOutlet.meta.facilities.hasSittingSpace}
+                      onChange={handleCheckboxChange}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label className="ml-2 text-sm font-medium text-gray-700">
+                      Has Sitting Space
+                    </label>
+                  </div>
+
+                  <div className="flex items-center">
+                    <input
+                      type="checkbox"
+                      name="meta.facilities.hasIslandSpace"
+                      checked={newOutlet.meta.facilities.hasIslandSpace}
+                      onChange={handleCheckboxChange}
+                      className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
+                    <label className="ml-2 text-sm font-medium text-gray-700">
+                      Has Island Space
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              {/* Nearby Outlets */}
+              <div className="pb-4">
+                <h3 className="text-lg font-semibold text-gray-800 mb-3">Nearby Outlets</h3>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Nearby Outlets (comma separated)</label>
+                  <textarea
+                    // value={newOutlet.meta.nearbyOutlets.join(', ')}
+                    onChange={handleNearbyOutletsChange}
+                    rows="2"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
+                    placeholder="Enter nearby outlets separated by commas"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">Separate multiple outlets with commas</p>
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-4 border-t">
                 <button
                   type="button"
                   onClick={() => setShowAddOutletModal(false)}
