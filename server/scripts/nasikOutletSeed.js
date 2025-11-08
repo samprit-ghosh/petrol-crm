@@ -6,18 +6,21 @@ import Outlet from "../models/Outlet.js";
 dotenv.config({ path: "../.env" });
 connectDB();
 
+// Helper function: generate 5-digit random code
+const generateSapCode = () => String(Math.floor(10000 + Math.random() * 90000));
+
 const seedOutlets = async () => {
     try {
-        const AURANGABAAD_ZONE_ID = new mongoose.Types.ObjectId("68fba5ead9e945db0dc2f7bf");
+        const NASIK_ZONE_ID = new mongoose.Types.ObjectId("68fb0216c81d0330c1f0b5e8");
 
         const rawData = {
             outlets: [
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41047951",
-                    "name": "EKVIRA PETROLEUM",
-                    "address": "GAT NO 371, VILLAGE NANDUR SHINGOTE, DIST. NASHIK",
-                    "district": "NASHIK",
+                    "name": "Ekvira Petroleum",
+                    "location": "Nandur Shinghote",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "SMT. SUNITA RAJU SHELKE",
                         "mobile": "9822683648",
@@ -41,11 +44,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["Hare Krishna", "Shankar Balaji WAJe", "OM SAI BABA"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41048441",
-                    "name": "DESHMANE PETROLEUM",
-                    "address": "GUT NO. 449/6, AT PIMPALGAON (BASWANT), MUMBAI AGRA ROAD, NH-3, DIST NASHIK.",
-                    "district": "NASHIK",
+                    "name": "MSHSD DESHMANE PETROLEUM",
+                    "location": "NH-52 pimpalgaon",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "SATISH RAMARAO DESHMANE",
                         "mobile": "9890446370",
@@ -69,11 +72,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["THETE PATIL", "SAI SHRADHA"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41040578",
-                    "name": "OM SAI PETROLEUM",
-                    "address": "SURVEY NO 1507, VILLAGE ADGAON, TAL & DIST. NASHIK",
-                    "district": "NASHIK",
+                    "name": "MSHSD OM SAI PETROLEUM",
+                    "location": "ADGAON",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "SHRI BHASKAR BANDU PAWAR",
                         "mobile": "9403158060",
@@ -97,11 +100,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["SHIVSAI", "NIVRUTI JADHAV"]
                 },
                 {
-                    "region": "",
+                    "region": "NASIK",
                     "sapCode": "41047760",
-                    "name": "SHREE DUTT PETROLEUM",
-                    "address": "SURVEY NO. 22/1, HISSA NO 3, AT VIHITGAON, DEOLALI CAMP ROAD, NASHIK ROAD, TAL & DIST NASHIK",
-                    "district": "NASHIK",
+                    "name": "MSHSD SHREE DUTT PETROLEUM",
+                    "location": "LAM ROAD",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "SMT. VIDYA BAPU WAVARE",
                         "mobile": "9822342008",
@@ -125,11 +128,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["SAKSHI", "MURLI PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41034394",
-                    "name": "SHREE BALAJI ENERGY PLAZA",
-                    "address": "GAT NO 577, VILLAGE JANORI TAL DINDORI",
-                    "district": "NASHIK",
+                    "name": "M/s SHREE BALAJI ENERGY PLAZA",
+                    "location": "OZAR",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "PANDURANG RAMCHANDRA WAGH AND VISHAL ARUN SARODE",
                         "mobile": "8237772233",
@@ -153,11 +156,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["SHIVAM CITY"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41050103",
-                    "name": "SUMAN PETROLEUM",
-                    "address": "SURVEY NO 883/1/2, PLOT NO 4,5,9,10,11 & 12, NASHIK CTY, RANE NAGAR, NASHIK",
-                    "district": "NASHIK",
+                    "name": "MS/HSD SUMAN PETROLEUM",
+                    "location": "Nashik",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "AJIT PANDIT DHATRAK",
                         "mobile": "7774981653",
@@ -168,7 +171,7 @@ const seedOutlets = async () => {
                         "mobile": "7774981653",
                         "email": "sumanpetrolium01@gmail.com"
                     },
-                    "saName": "NASIK-2",
+                    "saName": "Nashik -2",
                     "salesOfficer": {
                         "name": "SONAWANE PRATHMESH SOMNATH",
                         "mobile": "9307957620",
@@ -181,11 +184,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["SUVIDYA PETROLEUM", "N& M PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41052407",
-                    "name": "KR BOOB",
-                    "address": "PLOT NO. 8 MIDC, AMBAD NASHIK.",
-                    "district": "NASHIK",
+                    "name": "MS HSD KR BOOB",
+                    "location": "Nashik",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "LALIT PRADEEP BOOB AND SAKSHI LALIT BOOB",
                         "mobile": "9922009908",
@@ -196,7 +199,7 @@ const seedOutlets = async () => {
                         "mobile": "9922009908",
                         "email": "krboob@gmail.com"
                     },
-                    "saName": "NASIK-2",
+                    "saName": "Nashik -2",
                     "salesOfficer": {
                         "name": "SONAWANE PRATHMESH SOMNATH",
                         "mobile": "9307957620",
@@ -209,11 +212,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["P E GOMASE", "VISHAL PETROLEUM", "SUYOG PETROLEUM", "KOUSALYA PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41047886",
-                    "name": "PANDAV PETROLEUM",
-                    "address": "GUT NO. 753, DINDORI TOWN, TALUKA : DINDORI & DISTRICT : NASHIK",
-                    "district": "NASHIK",
+                    "name": "MS/HSD-PANDAV PETROLEUM",
+                    "location": "Nashik",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "ROSHAN DILIP JADHAV",
                         "mobile": "9890670551",
@@ -224,7 +227,7 @@ const seedOutlets = async () => {
                         "mobile": "9890670551",
                         "email": "pandavpetroleum@gmail.com"
                     },
-                    "saName": "NASIK-2",
+                    "saName": "Nashik -2",
                     "salesOfficer": {
                         "name": "SONAWANE PRATHMESH SOMNATH",
                         "mobile": "9307957620",
@@ -237,11 +240,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["ADISHAKTI PETROLEUM", "ASMITATAI DIGHAVKAR PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41047737",
                     "name": "SANJIVANI AUTO FUEL",
-                    "address": "GUT NO 17/2, VILLAGE VILHOLI, MUMBAI AGRA ROAD, TALUKA & DIST NASHIK",
-                    "district": "NASHIK",
+                    "location": "Nashik",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "SAMEER  SONAWANE",
                         "mobile": "9890065333",
@@ -252,7 +255,7 @@ const seedOutlets = async () => {
                         "mobile": "9890065333",
                         "email": "samirsonawane@yahoo.com"
                     },
-                    "saName": "NASIK-2",
+                    "saName": "Nashik -2",
                     "salesOfficer": {
                         "name": "SONAWANE PRATHMESH SOMNATH",
                         "mobile": "9307957620",
@@ -265,11 +268,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["PARVATI FILLING STATION", "KOTHULE PETROLEUM", "PRATIK FUEL PLAZA"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41047877",
-                    "name": "BHOSALE PETROLEUM",
-                    "address": "SURVEY NO. 134 (P), SOYAGAON VILLAGE, POST : SOYAGAON (N), TALUKA : MALEGAON, DISTIRCT : NASHIK",
-                    "district": "NASHIK",
+                    "name": "MSHSD BHOSALE PETROLEUM",
+                    "location": "Malegaon- Ajang Road",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "BHUSHAN BHOSALE",
                         "mobile": "9422273666",
@@ -280,7 +283,7 @@ const seedOutlets = async () => {
                         "mobile": "9422273666",
                         "email": "bhosale.petroleum@yahoo.com"
                     },
-                    "saName": "MANMAD",
+                    "saName": "Manmad",
                     "salesOfficer": {
                         "name": "SHOBIT SONI",
                         "mobile": "8193909938",
@@ -293,11 +296,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["MSHSD RAMESH & BROTHERS", "M/s FIDVI AGENCIES", "RAGHAV PETROLEUM", "RADHIKA PETROLEUM", "NARMADA PETROLEUM", "TRYAMBAKRAJ PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41037875",
-                    "name": "ZARIWALA FUEL STATION",
-                    "address": "GAT NO 159/5/159/7 VILLAGE DAREGAON TAL MALEGAON & DIST NASHIK",
-                    "district": "NASHIK",
+                    "name": "M/s ZARIWALA FUEL STATION",
+                    "location": "Malegoan- Dhule Road",
+                    "district": "Nashik",
                     "dealer": {
                         "name": "MAHFUZURRAHMAN MOHAMMED ISHAQUE",
                         "mobile": "9860205656",
@@ -308,7 +311,7 @@ const seedOutlets = async () => {
                         "mobile": "9860205656",
                         "email": "41037875@retail.hpcl.co.in"
                     },
-                    "saName": "MANMAD",
+                    "saName": "Manmad",
                     "salesOfficer": {
                         "name": "SHOBIT SONI",
                         "mobile": "8193909938",
@@ -321,22 +324,22 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["MSHSD MALPURE PETROLEUM", "MANJULE PETROLEUM", "JAY SHANKAR PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41052589",
-                    "name": "MANMAD AUTOMOBILES",
-                    "address": "MALEGAON NAKA , MANMAD, DIST NASHIK.",
-                    "district": "NASHIK",
+                    "name": "MSHSD MANMAD AUTOMOBILES",
+                    "location": "N/A",
+                    "district": "Nashik",
                     "dealer": {
-                        "name": "1) ALTAF MOHMAD DAWOOD, 2) MOHMAD SALIM AHMAD, 3) AMIN HAJI MOHMAD HARRON, 4) MOHMAD AMIR HAJI YUNUS, 5) AADIL HAJI ARIF",
+                        "name": "ALTAF MOHMAD DAWOOD, MOHMAD SALIM AHMAD, AMIN HAJI MOHMAD HARRON, MOHMAD AMIR HAJI YUNUS, AADIL HAJI ARIF",
                         "mobile": "9970710563",
                         "email": "41052589@retail.hpcl.co.in"
                     },
                     "roManager": {
-                        "name": "1) ALTAF MOHMAD DAWOOD, 2) MOHMAD SALIM AHMAD, 3) AMIN HAJI MOHMAD HARRON, 4) MOHMAD AMIR HAJI YUNUS, 5) AADIL HAJI ARIF",
+                        "name": "ALTAF MOHMAD DAWOOD, MOHMAD SALIM AHMAD, AMIN HAJI MOHMAD HARRON, MOHMAD AMIR HAJI YUNUS, AADIL HAJI ARIF",
                         "mobile": "9970710563",
                         "email": "41052589@retail.hpcl.co.in"
                     },
-                    "saName": "MANMAD",
+                    "saName": "Manmad",
                     "salesOfficer": {
                         "name": "SHOBIT SONI",
                         "mobile": "8193909938",
@@ -349,18 +352,18 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["MSHSD SHREE GURUKRUPA PETROLEUM", "BANKAR PATIL PETROLEUM", "YASH ENERGY"]
                 },
                 {
-                    "region": "",
+                    "region": "NASHIK",
                     "sapCode": "41053714",
-                    "name": "S S P S SETHI BROTHERS",
-                    "address": "S.NO.302/1&2, AT POST DEOBHANE, DISTRICT-DHULE",
+                    "name": "M/s S S P S SETHI BROTHERS",
+                    "location": "DEOBHANE",
                     "district": "DHULE",
                     "dealer": {
-                        "name": "1) SMT. CHARANJIT KAUR SHETHI,                     2) SHRI K.S. SETHI",
+                        "name": "SMT. CHARANJIT KAUR SHETHI, SHRI K.S. SETHI",
                         "mobile": "9960681888",
                         "email": "41053714@retail.hpcl.co.in"
                     },
                     "roManager": {
-                        "name": "1) SMT. CHARANJIT KAUR SHETHI,                     2) SHRI K.S. SETHI",
+                        "name": "SMT. CHARANJIT KAUR SHETHI, SHRI K.S. SETHI",
                         "mobile": "9960681888",
                         "email": "41053714@retail.hpcl.co.in"
                     },
@@ -374,13 +377,13 @@ const seedOutlets = async () => {
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
                     "standingCapacity": 25,
-                    "nearbyOutlets": ["M/s SHREE RAMDEV PETROLEUM & M/s. Shri Shri Balaji"]
+                    "nearbyOutlets": ["M/s SHREE RAMDEV PETROLEUM", "M/s. Shri Shri Balaji"]
                 },
                 {
-                    "region": "",
+                    "region": "NASHIK",
                     "sapCode": "41024088",
-                    "name": "SUBHASH CHANDRA AND SONS",
-                    "address": "GAT NO. 127/2/3/क, PLOT NO. - 1, VILLAGE LALING, TAL DHULE, DIST. DHULE",
+                    "name": "M/s SUBHASH CHANDRA AND SONS,AVDHAN",
+                    "location": "AWDHAN",
                     "district": "DHULE",
                     "dealer": {
                         "name": "SHRI SUSHIL LALCHAND POPLI",
@@ -402,13 +405,13 @@ const seedOutlets = async () => {
                     "sittingSpaceAvailable": false,
                     "islandSpaceAvailable": true,
                     "standingCapacity": 25,
-                    "nearbyOutlets": ["M/s KRISHNA PETROLEUM", "SAKRI & Koyal Automobiles"]
+                    "nearbyOutlets": ["M/s KRISHNA PETROLEUM", "SAKRI", "Koyal Automobiles"]
                 },
                 {
-                    "region": "",
+                    "region": "NASHIK",
                     "sapCode": "41054462",
-                    "name": "VIGHNAHAR HIGHWAY SERVICE",
-                    "address": "S.NO. 47/1/PART, BODKI KHADI(DAHIVEL), TAL-SAKRI, DIS- DHULE",
+                    "name": "M/s VIGHNAHAR HIGHWAY SERVICE, BODK",
+                    "location": "BODK",
                     "district": "DHULE",
                     "dealer": {
                         "name": "SMT. RAJNI VIRENDRA JAIN",
@@ -433,10 +436,10 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["No outlet is nearby"]
                 },
                 {
-                    "region": "",
+                    "region": "NASHIK",
                     "sapCode": "41050904",
                     "name": "M/s SATPUDA PETROLEUM, SANGVI",
-                    "address": "GUT NO.3/2/A, AT VILLAGE SANGHAVI, TALUKA-SHIRPUR, DISTRICT- DHULE",
+                    "location": "SANGVI",
                     "district": "DHULE",
                     "dealer": {
                         "name": "SHRI KRANTIKUMAR BUDHA PAWAR AND KULDIP ASHOK GAIKWAD",
@@ -458,13 +461,13 @@ const seedOutlets = async () => {
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
                     "standingCapacity": 25,
-                    "nearbyOutlets": ["M/s SHREE SAI PETROLEUM", "HADAKHED & Vinayak Petroleum"]
+                    "nearbyOutlets": ["M/s SHREE SAI PETROLEUM", "HADAKHED", "Vinayak Petroleum"]
                 },
                 {
-                    "region": "",
+                    "region": "NASHIK",
                     "sapCode": "41044396",
                     "name": "M/s VAHEGURU PETROLEUM, SAVALDE",
-                    "address": "GAT NO. 108,SAVALDE, SHIRPUR, DHULE",
+                    "location": "SANGVI",
                     "district": "DHULE",
                     "dealer": {
                         "name": "MS. SANDHYA SALUJA",
@@ -489,10 +492,10 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["M/s SHRI SHAM PETROLEUM", "KURKHALI"]
                 },
                 {
-                    "region": "",
+                    "region": "NASHIK",
                     "sapCode": "41044392",
                     "name": "M/s BHOLENATH PETROLEUM, SHIRPUR KH",
-                    "address": "GAT NO. 7/A/5 & 7/A/6, SHIRPUR KHURDE, DHULE",
+                    "location": "SHIRPUR",
                     "district": "DHULE",
                     "dealer": {
                         "name": "MR. DINESH MADHUKAR PATIL",
@@ -517,10 +520,10 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["GOVIND PETROLIUM", "GORANE"]
                 },
                 {
-                    "region": "",
+                    "region": "NASHIK",
                     "sapCode": "41045555",
                     "name": "JAGMA PETROLEUM",
-                    "address": "GAT NO. 50/3/A, KHED DIGAR, TAL. SHAHADA, DIST. NANDURBAR",
+                    "location": "KHED DIGAR",
                     "district": "NANDURBAR",
                     "dealer": {
                         "name": "MR. PRIYANK PATIL",
@@ -545,11 +548,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["No outlet is nearby"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41051686",
                     "name": "KABRA HIGHWAY PETROLEUM",
-                    "address": "GUT NO. 770(P), NEAR SAGAR GO GAS , SH-4, CHOPDA, DIST-JALGAON",
-                    "district": "JALGAON",
+                    "location": "CHOPDA",
+                    "district": "Jalgaon",
                     "dealer": {
                         "name": "SHRI NITIN SATYANARAYAN KABRE",
                         "mobile": "9822218851",
@@ -560,7 +563,7 @@ const seedOutlets = async () => {
                         "mobile": "9822218851",
                         "email": "niteen_kabre@rediffmail.com"
                     },
-                    "saName": "JALGAON",
+                    "saName": "Jalgaon SA",
                     "salesOfficer": {
                         "name": "RAVI KUMAR BORI BORI",
                         "mobile": "9769991231",
@@ -573,22 +576,22 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["PAWAR PETROLEUM", "MAHESH PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41053805",
                     "name": "DESHMUKH BROTHERS",
-                    "address": "S.NO. 833/2, AT VARANGAON , DISTRICT JALGAON",
-                    "district": "JALGAON",
+                    "location": "VARANGAON",
+                    "district": "Jalgaon",
                     "dealer": {
-                        "name": "SHRI SAMBHAJI N. DESHMUKH SHRI UDAY N. DESHMUKH & SHRI SANJAY N. DESHMUKH",
+                        "name": "SHRI SAMBHAJI N. DESHMUKH, SHRI UDAY N. DESHMUKH, SHRI SANJAY N. DESHMUKH",
                         "mobile": "9423187777/7249737777",
                         "email": "41053805@retail.hpcl.co.in"
                     },
                     "roManager": {
-                        "name": "SHRI SAMBHAJI N. DESHMUKH SHRI UDAY N. DESHMUKH & SHRI SANJAY N. DESHMUKH",
+                        "name": "SHRI SAMBHAJI N. DESHMUKH, SHRI UDAY N. DESHMUKH, SHRI SANJAY N. DESHMUKH",
                         "mobile": "9423187777/7249737777",
                         "email": "mlsdeshmukhbros@gmail.com"
                     },
-                    "saName": "JALGAON",
+                    "saName": "Jalgaon SA",
                     "salesOfficer": {
                         "name": "RAVI KUMAR BORI BORI",
                         "mobile": "9769991231",
@@ -601,11 +604,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["DENA SAI AUTO SERVICE", "CHANDRODAY PETROLEUM", "SSD PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41052070",
                     "name": "KALE PETROLEUM",
-                    "address": "GUT NO. 158,CST NO. 3505(PART), ON OLD DECLASSIFIED JALGAON -BHUSAWAL ROAD, JALGAON CITY",
-                    "district": "JALGAON",
+                    "location": "JALGAON",
+                    "district": "Jalgaon",
                     "dealer": {
                         "name": "SHRI RAJENDRA PRALHAD KALE",
                         "mobile": "9423580873",
@@ -616,7 +619,7 @@ const seedOutlets = async () => {
                         "mobile": "9423580873",
                         "email": "kaleraju333@gmail.com"
                     },
-                    "saName": "JALGAON",
+                    "saName": "Jalgaon SA",
                     "salesOfficer": {
                         "name": "RAVI KUMAR BORI BORI",
                         "mobile": "9769991231",
@@ -626,14 +629,14 @@ const seedOutlets = async () => {
                     "sittingSpaceAvailable": false,
                     "islandSpaceAvailable": true,
                     "standingCapacity": 20,
-                    "nearbyOutlets": ["BHAGYASHRI PETROLEUM", "GURU  PETROLEUM"]
+                    "nearbyOutlets": ["BHAGYASHRI PETROLEUM", "GURU PETROLEUM"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41041471",
                     "name": "PUSHPA PETROLEUM",
-                    "address": "PLOT NO SECTOR H-11-1,  VILLAGE MEHRUN, TAL & DIST JALGAON",
-                    "district": "JALGAON",
+                    "location": "JALGAON",
+                    "district": "Jalgaon",
                     "dealer": {
                         "name": "RAJESH OMPRAKASH AGRAWAL",
                         "mobile": "9823047269",
@@ -644,7 +647,7 @@ const seedOutlets = async () => {
                         "mobile": "9823047269",
                         "email": "pushpapulses01@ymail.com"
                     },
-                    "saName": "JALGAON",
+                    "saName": "Jalgaon SA",
                     "salesOfficer": {
                         "name": "RAVI KUMAR BORI BORI",
                         "mobile": "9769991231",
@@ -657,11 +660,11 @@ const seedOutlets = async () => {
                     "nearbyOutlets": ["SHRI GURU GANESH PETROLEUM", "JAIN BROTHERS"]
                 },
                 {
-                    "region": "",
+                    "region": "Nasik",
                     "sapCode": "41047750",
                     "name": "BABA PETROLEUM",
-                    "address": "GAT NO. 3/2/2/A, CHALISGAON, DIST. JALGAON",
-                    "district": "JALGAON",
+                    "location": "KHADKI",
+                    "district": "Jalgaon",
                     "dealer": {
                         "name": "RAVINDRA PUNDALIK PATIL",
                         "mobile": "9028700800",
@@ -672,7 +675,7 @@ const seedOutlets = async () => {
                         "mobile": "9028700800",
                         "email": "tenujay24@yahoo.in"
                     },
-                    "saName": "JALGAON",
+                    "saName": "Jalgaon SA",
                     "salesOfficer": {
                         "name": "RAVI KUMAR BORI BORI",
                         "mobile": "9769991231",
@@ -688,18 +691,49 @@ const seedOutlets = async () => {
         };
 
         // Add zone reference to each outlet
-        const outletsWithZone = rawData.outlets.map(outlet => ({
-            ...outlet,
-            zone: AURANGABAAD_ZONE_ID
-        }));
+        const outletsWithZone = rawData.outlets.map(o => {
+            return {
+                name: o.name.trim(),
+                code: o.sapCode && o.sapCode.trim() !== "" ? o.sapCode : generateSapCode(),
+                zone: NASIK_ZONE_ID,
+                address: o.location,
+                footfallType: "urban",
+                meta: {
+                    region: o.region,
+                    district: o.district,
+                    dealer: {
+                        name: o.dealer?.name || "",
+                        contact: o.dealer?.mobile || "",
+                        email: o.dealer?.email || "",
+                    },
+                    roManager: {
+                        name: o.roManager?.name || "",
+                        email: o.roManager?.email || "",
+                    },
+                    sa: o.saName,
+                    so: {
+                        name: o.salesOfficer?.name || "",
+                        phone: o.salesOfficer?.mobile || "",
+                        email: o.salesOfficer?.email || "",
+                    },
+                    facilities: {
+                        noOfCSA: o.noOfCSAs,
+                        hasSittingSpace: o.sittingSpaceAvailable,
+                        hasIslandSpace: o.islandSpaceAvailable,
+                        standingCapacity: o.standingCapacity,
+                    },
+                    nearbyOutlets: o.nearbyOutlets || [],
+                },
+            };
+        });
 
         // Clear existing outlets for this zone
-        await Outlet.deleteMany({ zone: AURANGABAAD_ZONE_ID });
-        console.log('Cleared existing outlets for Aurangabaad zone');
+        await Outlet.deleteMany({ zone: NASIK_ZONE_ID });
+        console.log('Cleared existing outlets for Nasik zone');
 
         // Insert new outlets
         const result = await Outlet.insertMany(outletsWithZone);
-        console.log(`Successfully seeded ${result.length} outlets for Aurangabaad zone`);
+        console.log(`Successfully seeded ${result.length} outlets for Nasik zone`);
 
         process.exit(0);
     } catch (error) {
