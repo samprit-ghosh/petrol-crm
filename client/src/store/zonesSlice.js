@@ -1,3 +1,8 @@
+
+
+
+
+
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import axiosInstance from '../utils/axiosConfig'; 
 
@@ -21,11 +26,11 @@ export const fetchZonesData = createAsyncThunk(
       const zonesData = {};
       
       outletsArray.forEach((outlet, index) => {
-        console.log(`🔍 Processing outlet ${index}:`, outlet.name);
-        console.log(`   Dealer data:`, outlet.dealer);
-        console.log(`   RO Manager data:`, outlet.roManager);
-        console.log(`   SO data:`, outlet.so);
-        console.log(`   Facilities data:`, outlet.facilities);
+        // console.log(`🔍 Processing outlet ${index}:`, outlet.name);
+        // console.log(`   Dealer data:`, outlet.dealer);
+        // console.log(`   RO Manager data:`, outlet.roManager);
+        // console.log(`   SO data:`, outlet.so);
+        // console.log(`   Facilities data:`, outlet.facilities);
         
         const zoneName = outlet.zone?.name || 'Unknown Zone';
         
@@ -47,7 +52,7 @@ export const fetchZonesData = createAsyncThunk(
       // console.log('✅ Final processed zones data:', zonesData);
       return zonesData;
     } catch (error) {
-      console.error('❌ Error fetching zones data:', error);
+      // console.error('❌ Error fetching zones data:', error);
       if (error.response && error.response.data) {
         return rejectWithValue(error.response.data.message || 'Failed to fetch zones data');
       }
@@ -104,16 +109,67 @@ export const updateOutlet = createAsyncThunk(
   }
 );
 
-// Thunk for deleting outlet
+// Thunk for deleting outlet - IMPROVED VERSION
 export const deleteOutlet = createAsyncThunk(
   'zones/deleteOutlet',
-  async (outletId, { rejectWithValue }) => {
+  async (outletId, { rejectWithValue, getState }) => {
     try {
+      // Store outlet data before deletion for potential rollback
+      const state = getState();
+      let outletToDelete = null;
+      let zoneName = null;
+      
+      // Find the outlet in the current state
+      if (state.zones.zones) {
+        Object.keys(state.zones.zones).forEach(zone => {
+          const outlet = state.zones.zones[zone].find(outlet => outlet._id === outletId);
+          if (outlet) {
+            outletToDelete = outlet;
+            zoneName = zone;
+          }
+        });
+      }
+      
+      console.log(`🗑️ Deleting outlet: ${outletId} from zone: ${zoneName}`);
+      
+      // Make API call to delete
       await axiosInstance.delete(`/outlets/${outletId}`);
-      return outletId;
+      
+      // Return both outletId and zoneName for state update
+      return { 
+        outletId, 
+        zoneName,
+        outletData: outletToDelete // For potential undo functionality
+      };
     } catch (error) {
+      console.error('❌ Error deleting outlet:', error);
       if (error.response && error.response.data) {
         return rejectWithValue(error.response.data.message || 'Failed to delete outlet');
+      }
+      return rejectWithValue(error.message);
+    }
+  }
+);
+
+// Optional: Thunk for bulk delete operations
+export const bulkDeleteOutlets = createAsyncThunk(
+  'zones/bulkDeleteOutlets',
+  async (outletIds, { rejectWithValue }) => {
+    try {
+      // console.log(`🗑️ Bulk deleting outlets:`, outletIds);
+      
+      // Use Promise.all to delete all outlets concurrently
+      const deletePromises = outletIds.map(outletId => 
+        axiosInstance.delete(`/outlets/${outletId}`)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      return outletIds;
+    } catch (error) {
+      console.error('❌ Error in bulk delete:', error);
+      if (error.response && error.response.data) {
+        return rejectWithValue(error.response.data.message || 'Failed to delete outlets');
       }
       return rejectWithValue(error.message);
     }
@@ -128,12 +184,19 @@ const zonesSlice = createSlice({
     loading: false,
     error: null,
     operationLoading: false,
-    operationError: null
+    operationError: null,
+    // Additional state for delete operations
+    deleteStatus: {
+      pending: false,
+      success: false,
+      error: null
+    }
   },
   reducers: {
     clearError: (state) => {
       state.error = null;
       state.operationError = null;
+      state.deleteStatus.error = null;
     },
     setZones: (state, action) => {
       state.zones = action.payload;
@@ -145,6 +208,11 @@ const zonesSlice = createSlice({
       state.error = null;
       state.operationLoading = false;
       state.operationError = null;
+      state.deleteStatus = {
+        pending: false,
+        success: false,
+        error: null
+      };
     },
     clearCurrentOutlet: (state) => {
       state.currentOutlet = null;
@@ -152,6 +220,40 @@ const zonesSlice = createSlice({
     clearOperationState: (state) => {
       state.operationLoading = false;
       state.operationError = null;
+      state.deleteStatus = {
+        pending: false,
+        success: false,
+        error: null
+      };
+    },
+    // Manual outlet removal (for immediate UI updates)
+    removeOutletFromState: (state, action) => {
+      const outletId = action.payload;
+      if (state.zones) {
+        Object.keys(state.zones).forEach(zoneName => {
+          state.zones[zoneName] = state.zones[zoneName].filter(
+            outlet => outlet._id !== outletId
+          );
+          
+          // Remove empty zones
+          if (state.zones[zoneName].length === 0) {
+            delete state.zones[zoneName];
+          }
+        });
+      }
+      
+      // Clear current outlet if it's the one being removed
+      if (state.currentOutlet && state.currentOutlet._id === outletId) {
+        state.currentOutlet = null;
+      }
+    },
+    // Reset delete status
+    resetDeleteStatus: (state) => {
+      state.deleteStatus = {
+        pending: false,
+        success: false,
+        error: null
+      };
     },
     // Debug action to check current state
     debugState: (state) => {
@@ -257,30 +359,107 @@ const zonesSlice = createSlice({
         state.operationError = action.payload;
       })
       
-      // Delete outlet
+      // Delete outlet - IMPROVED
       .addCase(deleteOutlet.pending, (state) => {
         state.operationLoading = true;
+        state.deleteStatus.pending = true;
+        state.deleteStatus.success = false;
+        state.deleteStatus.error = null;
         state.operationError = null;
       })
       .addCase(deleteOutlet.fulfilled, (state, action) => {
         state.operationLoading = false;
+        state.deleteStatus.pending = false;
+        state.deleteStatus.success = true;
+        state.deleteStatus.error = null;
         state.operationError = null;
+        
+        const { outletId, zoneName } = action.payload;
+        
         // Remove the outlet from the zones state
-        if (state.zones) {
-          Object.keys(state.zones).forEach(zoneName => {
-            state.zones[zoneName] = state.zones[zoneName].filter(
-              outlet => outlet._id !== action.payload
-            );
-          });
+        if (state.zones && zoneName && state.zones[zoneName]) {
+          state.zones[zoneName] = state.zones[zoneName].filter(
+            outlet => outlet._id !== outletId
+          );
+          
+          // Remove empty zones
+          if (state.zones[zoneName].length === 0) {
+            delete state.zones[zoneName];
+          }
+        } else {
+          // Fallback: search through all zones if zoneName is not available
+          if (state.zones) {
+            Object.keys(state.zones).forEach(zone => {
+              state.zones[zone] = state.zones[zone].filter(
+                outlet => outlet._id !== outletId
+              );
+              
+              // Remove empty zones
+              if (state.zones[zone].length === 0) {
+                delete state.zones[zone];
+              }
+            });
+          }
         }
+        
         // Clear current outlet if it's the one being deleted
-        if (state.currentOutlet && state.currentOutlet._id === action.payload) {
+        if (state.currentOutlet && state.currentOutlet._id === outletId) {
           state.currentOutlet = null;
         }
+        
+        console.log(`✅ Successfully deleted outlet: ${outletId}`);
       })
       .addCase(deleteOutlet.rejected, (state, action) => {
         state.operationLoading = false;
+        state.deleteStatus.pending = false;
+        state.deleteStatus.success = false;
+        state.deleteStatus.error = action.payload;
         state.operationError = action.payload;
+        // console.error('❌ Failed to delete outlet:', action.payload);
+      })
+      
+      // Bulk delete outlets
+      .addCase(bulkDeleteOutlets.pending, (state) => {
+        state.operationLoading = true;
+        state.deleteStatus.pending = true;
+        state.deleteStatus.success = false;
+        state.deleteStatus.error = null;
+      })
+      .addCase(bulkDeleteOutlets.fulfilled, (state, action) => {
+        state.operationLoading = false;
+        state.deleteStatus.pending = false;
+        state.deleteStatus.success = true;
+        state.deleteStatus.error = null;
+        
+        const outletIds = action.payload;
+        
+        // Remove all deleted outlets from state
+        if (state.zones) {
+          Object.keys(state.zones).forEach(zoneName => {
+            state.zones[zoneName] = state.zones[zoneName].filter(
+              outlet => !outletIds.includes(outlet._id)
+            );
+            
+            // Remove empty zones
+            if (state.zones[zoneName].length === 0) {
+              delete state.zones[zoneName];
+            }
+          });
+        }
+        
+        // Clear current outlet if it was deleted
+        if (state.currentOutlet && outletIds.includes(state.currentOutlet._id)) {
+          state.currentOutlet = null;
+        }
+        
+        // console.log(`✅ Successfully bulk deleted ${outletIds.length} outlets`);
+      })
+      .addCase(bulkDeleteOutlets.rejected, (state, action) => {
+        state.operationLoading = false;
+        state.deleteStatus.pending = false;
+        state.deleteStatus.success = false;
+        state.deleteStatus.error = action.payload;
+        // console.error('❌ Failed to bulk delete outlets:', action.payload);
       });
   },
 });
@@ -291,6 +470,8 @@ export const {
   resetZones, 
   clearCurrentOutlet, 
   clearOperationState,
+  removeOutletFromState,
+  resetDeleteStatus,
   debugState 
 } = zonesSlice.actions;
 

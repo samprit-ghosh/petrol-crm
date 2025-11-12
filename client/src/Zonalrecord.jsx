@@ -1,11 +1,27 @@
+
+
+
+
 import React, { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { fetchZonesData, clearError } from './store/zonesSlice';
+import { 
+  fetchZonesData, 
+  clearError, 
+  deleteOutlet,
+  clearOperationState 
+} from './store/zonesSlice';
 import axiosInstance from '../src/utils/axiosConfig';
 
 const ZoneOutletManagement = () => {
   const dispatch = useDispatch();
-  const { zones: zonesData, loading, error } = useSelector((state) => state.zones);
+  const { 
+    zones: zonesData, 
+    loading, 
+    error,
+    operationLoading,
+    operationError,
+    deleteStatus 
+  } = useSelector((state) => state.zones);
 
   const [selectedZone, setSelectedZone] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -14,6 +30,8 @@ const ZoneOutletManagement = () => {
   const [showAddOutletModal, setShowAddOutletModal] = useState(false);
   const [submitLoading, setSubmitLoading] = useState(false);
   const [notification, setNotification] = useState({ show: false, message: '', type: '' });
+  const [outletToDelete, setOutletToDelete] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [newOutlet, setNewOutlet] = useState({
     name: '',
     code: '',
@@ -53,6 +71,17 @@ const ZoneOutletManagement = () => {
     dispatch(fetchZonesData());
   }, [dispatch]);
 
+  // Show notification for delete operations
+  useEffect(() => {
+    if (deleteStatus.success) {
+      showNotification('Outlet deleted successfully!', 'success');
+      dispatch(clearOperationState());
+    } else if (deleteStatus.error) {
+      showNotification(`Failed to delete outlet: ${deleteStatus.error}`, 'error');
+      dispatch(clearOperationState());
+    }
+  }, [deleteStatus.success, deleteStatus.error, dispatch]);
+
   const zoneData = zonesData || {};
 
   const zoneStats = Object.keys(zoneData).reduce((stats, zoneName) => {
@@ -88,6 +117,32 @@ const ZoneOutletManagement = () => {
       return;
     }
     setShowAddOutletModal(true);
+  };
+
+  // Delete outlet handler
+  const handleDeleteOutlet = (outlet) => {
+    setOutletToDelete(outlet);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    if (outletToDelete) {
+      dispatch(deleteOutlet(outletToDelete._id))
+        .unwrap()
+        .then(() => {
+          showNotification('Outlet deleted successfully!', 'success');
+        })
+        .catch((error) => {
+          showNotification(`Failed to delete outlet: ${error}`, 'error');
+        });
+    }
+    setShowDeleteModal(false);
+    setOutletToDelete(null);
+  };
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false);
+    setOutletToDelete(null);
   };
 
   // Handlers for nested form data
@@ -408,10 +463,15 @@ const ZoneOutletManagement = () => {
       )}
 
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Zone & Outlet Management</h1>
-        <p className="text-gray-600">Select a zone to view and manage its outlets</p>
-      </div>
+<div className="mb-8 text-center sm:text-left">
+  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">
+    Zone & Outlet Management
+  </h1>
+  <p className="text-gray-600">
+    Select a zone to view and manage its outlets
+  </p>
+</div>
+
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Zone Selection Panel */}
@@ -586,7 +646,7 @@ const ZoneOutletManagement = () => {
                               <div className="w-5 h-5 mr-3 text-gray-400 mt-0.5 flex-shrink-0">🏢</div>
                               <div>
                                 <span className="font-medium text-gray-900">Outlet ID:</span>
-                                <p className="mt-1 text-[11px] sm:text-sm leading-tight break-words text-gray-700">
+                                <p className="mt-1 text-[11px] sm:text-sm leading-tight break-words text-gray-700 break-all w-full">
                                   {displayData(outlet._id)}
                                 </p>
                               </div>
@@ -602,12 +662,21 @@ const ZoneOutletManagement = () => {
 
                             <div className="flex items-start">
                               <div className="w-5 h-5 mr-3 text-gray-400 flex-shrink-0">👤</div>
-                              <div>
-                                <span className="font-medium text-gray-900">Dealer:</span>
-                                <p className="mt-1 text-sm">{displayData(outlet.meta?.dealer?.name)}</p>
-                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.dealer?.contact)}</p>
-                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.dealer?.email)}</p>
-                              </div>
+<div className="flex flex-col items-start text-left p-2 rounded-lg bg-white sm:bg-transparent w-full max-w-full overflow-hidden">
+  <span className="font-semibold text-gray-900 text-sm sm:text-base mb-1">
+    Dealer:
+  </span>
+  <p className="text-sm sm:text-[15px] text-gray-800 break-words w-full">
+    {displayData(outlet.meta?.dealer?.name)}
+  </p>
+  <p className="text-xs text-gray-500 w-full break-words">
+    {displayData(outlet.meta?.dealer?.contact)}
+  </p>
+  <p className="text-xs text-gray-500 w-full break-all">
+    {displayData(outlet.meta?.dealer?.email)}
+  </p>
+</div>
+
                             </div>
                           </div>
 
@@ -618,7 +687,9 @@ const ZoneOutletManagement = () => {
                               <div>
                                 <span className="font-medium text-gray-900">RO Manager:</span>
                                 <p className="mt-1 text-sm">{displayData(outlet.meta?.roManager?.name)}</p>
-                                <p className="text-xs text-gray-500">{displayData(outlet.meta?.roManager?.email)}</p>
+                                    <p className="text-xs text-gray-500 break-all w-full">
+        {displayData(outlet.meta?.roManager?.email)}
+      </p>
                                 <p className="text-xs text-gray-500">{displayData(outlet.meta?.sa)}</p>
                               </div>
                             </div>
@@ -690,14 +761,22 @@ const ZoneOutletManagement = () => {
                           <span>Updated: {outlet.updatedAt ? new Date(outlet.updatedAt).toLocaleDateString() : 'N/A'}</span>
                         </div>
 
-                        <div className="flex gap-3 mt-6">
-                          <button className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 py-2 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all duration-300 text-sm font-medium border border-gray-300">
-                            View Details
-                          </button>
-                          <button className="flex-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 py-2 rounded-lg hover:from-blue-200 hover:to-blue-300 transition-all duration-300 text-sm font-medium border border-blue-300">
-                            Edit Outlet
-                          </button>
-                        </div>
+                   <div className="flex flex-col sm:flex-row gap-3 mt-6">
+  <button className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 py-2 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all duration-300 text-sm font-medium border border-gray-300">
+    View Details
+  </button>
+  <button className="flex-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-700 py-2 rounded-lg hover:from-blue-200 hover:to-blue-300 transition-all duration-300 text-sm font-medium border border-blue-300">
+    Edit Outlet
+  </button>
+  <button
+    onClick={() => handleDeleteOutlet(outlet)}
+    disabled={operationLoading}
+    className="flex-1 bg-gradient-to-r from-red-100 to-red-200 text-red-700 py-2 rounded-lg hover:from-red-200 hover:to-red-300 transition-all duration-300 text-sm font-medium border border-red-300 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+  >
+    {operationLoading ? 'Deleting...' : 'Delete'}
+  </button>
+</div>
+
                       </div>
                     ))}
 
@@ -909,8 +988,6 @@ const ZoneOutletManagement = () => {
               <div className="border-b pb-4">
                 <h3 className="text-lg font-semibold text-gray-800 mb-3">Location Information</h3>
                 <div className="grid grid-cols-1 gap-4">
-          
-
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-1">District *</label>
                     <input
@@ -958,9 +1035,9 @@ const ZoneOutletManagement = () => {
                 </div>
 
                 <div className="mt-4">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Dealer Email</label>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Dealer Email </label>
                   <input
-                    type="email"
+                    type="text"
                     name="meta.dealer.email"
                     value={newOutlet.meta.dealer.email}
                     onChange={handleInputChange}
@@ -1004,7 +1081,7 @@ const ZoneOutletManagement = () => {
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">RO Manager Email</label>
                   <input
-                    type="email"
+                    type="text"
                     name="meta.roManager.email"
                     value={newOutlet.meta.roManager.email}
                     onChange={handleInputChange}
@@ -1048,7 +1125,7 @@ const ZoneOutletManagement = () => {
                 <div className="mt-4">
                   <label className="block text-sm font-medium text-gray-700 mb-1">SO Email *</label>
                   <input
-                    type="email"
+                    type="text"
                     name="meta.so.email"
                     value={newOutlet.meta.so.email}
                     onChange={handleInputChange}
@@ -1127,7 +1204,6 @@ const ZoneOutletManagement = () => {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">Nearby Outlets (comma separated)</label>
                   <textarea
-                    // value={newOutlet.meta.nearbyOutlets.join(', ')}
                     onChange={handleNearbyOutletsChange}
                     rows="2"
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-200"
@@ -1165,6 +1241,63 @@ const ZoneOutletManagement = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+          
+          <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full relative z-10 transform transition-all duration-300 scale-100">
+            <div className="p-6 border-b border-gray-200">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                  <svg className="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </div>
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">Delete Outlet</h2>
+                  <p className="text-gray-600 mt-1">This action cannot be undone</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6">
+              <p className="text-gray-700">
+                Are you sure you want to delete <strong>"{outletToDelete?.name}"</strong>? 
+                This will permanently remove the outlet and all its data.
+              </p>
+              
+              <div className="mt-6 flex gap-3">
+                <button
+                  onClick={cancelDelete}
+                  disabled={operationLoading}
+                  className="flex-1 bg-gradient-to-r from-gray-100 to-gray-200 text-gray-700 py-2 rounded-lg hover:from-gray-200 hover:to-gray-300 transition-all duration-300 font-medium disabled:bg-gray-300 disabled:cursor-not-allowed border border-gray-300"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={confirmDelete}
+                  disabled={operationLoading}
+                  className="flex-1 bg-gradient-to-r from-red-600 to-red-700 text-white py-2 rounded-lg hover:from-red-700 hover:to-red-800 transition-all duration-300 font-medium disabled:from-red-400 disabled:to-red-500 disabled:cursor-not-allowed shadow-sm"
+                >
+                  {operationLoading ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </span>
+                  ) : (
+                    'Delete Outlet'
+                  )}
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

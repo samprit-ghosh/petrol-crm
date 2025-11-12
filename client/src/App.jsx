@@ -9,6 +9,8 @@ import Login from './Login';
 import Dashboard from './OutletDetailsModal';
 import ZoneOutletManagement from './Zonalrecord';
 import UserManagement from './UserManagement';
+import FuelSalesDashboard from "./FuelSalesDashboard";
+import Datacomparision from "./Datacomparision"
 
 function Loader() {
   return (
@@ -75,17 +77,30 @@ function App() {
         } />
 
         {/* Protected Routes */}
+        <Route path="/reports" element={
+          <PrivateRoute>
+            <FuelSalesDashboard/>
+          </PrivateRoute>
+        } />
+
+       <Route path="/sales" element={
+          <PrivateRoute>
+            <Dashboard/>
+          </PrivateRoute>
+        } />
+
+
+       <Route path="/comparision" element={
+          <PrivateRoute>
+            <Datacomparision/>
+          </PrivateRoute>
+        } />
         <Route path="/" element={
           <PrivateRoute>
             <FuelStationForm />
           </PrivateRoute>
         } />
 
-        <Route path="/sales" element={
-          <PrivateRoute>
-            <Dashboard />
-          </PrivateRoute>
-        } />
 
         <Route path="/usermanagement" element={
           <PrivateRoute>

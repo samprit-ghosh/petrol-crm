@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { logout } from "./store/authSlice";
@@ -8,22 +8,26 @@ import {
   LayoutDashboard,
   Users,
   BarChart3,
-  Settings,
   LogOut,
   User,
+  ChevronDown,
 } from "lucide-react";
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const [reportMenuOpen, setReportMenuOpen] = useState(false);
+  const [selectedZone, setSelectedZone] = useState("");
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  
-  // Get auth state from Redux
+  const reportMenuRef = useRef(null);
+
   const { isAuthenticated, user } = useSelector((state) => state.auth);
+  const { zones } = useSelector((state) => state.zones);
 
   const handleNavigate = (path) => {
     navigate(path);
-    setMenuOpen(false); // close mobile menu after navigation
+    setMenuOpen(false);
+    setReportMenuOpen(false);
   };
 
   const handleLogout = () => {
@@ -32,11 +36,20 @@ export default function Navbar() {
     setMenuOpen(false);
   };
 
-  // Redirect to login if not authenticated and trying to access protected routes
+  // ✅ Close the reports dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (reportMenuRef.current && !reportMenuRef.current.contains(event.target)) {
+        setReportMenuOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   useEffect(() => {
     const currentPath = window.location.pathname;
     const protectedRoutes = ["/sales", "/reports", "/settings", "/dashboard"];
-    
     if (!isAuthenticated && protectedRoutes.includes(currentPath)) {
       navigate("/login");
     }
@@ -45,10 +58,10 @@ export default function Navbar() {
   return (
     <header className="w-full bg-white/80 backdrop-blur-md border-b border-gray-200 shadow-sm sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 py-3 flex items-center justify-between">
-        {/* Left: Logo + Brand */}
+        {/* Brand */}
         <div
           className="flex items-center gap-2 cursor-pointer"
-         
+          onClick={() => handleNavigate("/")}
         >
           <div className="p-2 rounded-xl bg-gradient-to-tr from-emerald-500 to-green-400 shadow-sm">
             <LayoutDashboard className="w-5 h-5 text-white" />
@@ -59,9 +72,8 @@ export default function Navbar() {
         </div>
 
         {/* Desktop Menu */}
-        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600">
-          {isAuthenticated ? (
-            // Authenticated User Menu
+        <nav className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-600 relative">
+          {isAuthenticated && (
             <>
               <button
                 onClick={() => handleNavigate("/sales")}
@@ -71,22 +83,48 @@ export default function Navbar() {
                 Dashboard
               </button>
 
+              {/* Reports Dropdown */}
+              <div className="relative" ref={reportMenuRef}>
+                <button
+                  onClick={() => setReportMenuOpen((prev) => !prev)}
+                  className="hover:text-emerald-600 flex items-center gap-1 transition-colors"
+                >
+                  <BarChart3 className="w-4 h-4" />
+                  Reports
+                  <ChevronDown
+                    className={`w-4 h-4 ml-1 transition-transform ${
+                      reportMenuOpen ? "rotate-180" : ""
+                    }`}
+                  />
+                </button>
+
+                {reportMenuOpen && (
+                  <div className="absolute left-0 top-full mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg animate-fadeIn p-2 z-50">
+                    <button
+                      onClick={() => handleNavigate("/reports")}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-md"
+                    >
+                      📘 Pre Data Training
+                    </button>
+                    <button
+                      onClick={() => handleNavigate("/comparision")}
+                      className="w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-md"
+                    >
+                      📊 Comparison Report
+                    </button>
+
+                    {/* Zone Dropdown */}
+             
+                  </div>
+                )}
+              </div>
+
               <button
-                onClick={() => handleNavigate("/reports")}
-                className="hover:text-emerald-600 flex items-center gap-1 transition-colors"
-              >
-                <BarChart3 className="w-4 h-4" />
-                Reports
-              </button>
-
-
-
-                            <button
                 onClick={() => handleNavigate("/")}
                 className="hover:text-emerald-600 flex items-center gap-1 transition-colors"
               >
                 <Users className="w-4 h-4" />
-                Data Upload 
+                Data Upload
               </button>
 
               {/* User Info */}
@@ -99,18 +137,12 @@ export default function Navbar() {
                 </div>
               )}
             </>
-          ) : (
-            // Non-Authenticated User Menu
-            <>
-
-            </>
           )}
         </nav>
 
         {/* Right Section */}
         <div className="flex items-center gap-3">
           {isAuthenticated ? (
-            // Authenticated User - Logout Button
             <button
               onClick={handleLogout}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-rose-600 text-white hover:bg-rose-700 transition-colors"
@@ -119,7 +151,6 @@ export default function Navbar() {
               <span>Logout</span>
             </button>
           ) : (
-            // Non-Authenticated User - Login Button
             <button
               onClick={() => handleNavigate("/login")}
               className="hidden md:flex items-center gap-2 px-3 py-1.5 rounded-lg bg-emerald-600 text-white hover:bg-emerald-700 transition-colors"
@@ -129,7 +160,7 @@ export default function Navbar() {
             </button>
           )}
 
-          {/* Mobile menu button */}
+          {/* Mobile Toggle */}
           <button
             onClick={() => setMenuOpen((prev) => !prev)}
             className="md:hidden p-2 rounded-lg hover:bg-gray-100 transition-colors"
@@ -143,14 +174,12 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Dropdown */}
+      {/* Mobile Menu */}
       {menuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200 shadow-md animate-fadeIn">
           <nav className="flex flex-col py-2 text-gray-700">
             {isAuthenticated ? (
-              // Authenticated Mobile Menu
               <>
-                {/* User Info */}
                 {user && (
                   <div className="flex items-center gap-2 px-6 py-3 bg-gray-50 border-b border-gray-100">
                     <User className="w-4 h-4 text-gray-600" />
@@ -159,25 +188,56 @@ export default function Navbar() {
                     </span>
                   </div>
                 )}
-                
+
                 <button
                   onClick={() => handleNavigate("/sales")}
                   className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50 transition-colors"
                 >
                   <LayoutDashboard className="w-4 h-4" /> Dashboard
                 </button>
+
+                <details className="group">
+                  <summary className="flex items-center gap-2 px-6 py-2 cursor-pointer hover:bg-gray-50 transition-colors list-none">
+                    <BarChart3 className="w-4 h-4" />
+                    Reports
+                    <ChevronDown className="w-4 h-4 ml-auto group-open:rotate-180 transition-transform" />
+                  </summary>
+                  <div className="pl-12 flex flex-col gap-1 pb-2">
+                    <button
+                      onClick={() => handleNavigate("/reports/pre")}
+                      className="text-left py-1 text-sm text-gray-700 hover:text-emerald-700"
+                    >
+                      📘 Pre Data Training
+                    </button>
+                    <button
+                      onClick={() => handleNavigate("/reports/comparison")}
+                      className="text-left py-1 text-sm text-gray-700 hover:text-emerald-700"
+                    >
+                      📊 Comparison Report
+                    </button>
+
+                    <select
+                      value={selectedZone}
+                      onChange={(e) => setSelectedZone(e.target.value)}
+                      className="mt-2 border border-gray-300 rounded-md px-3 py-1.5 text-gray-700 text-sm w-44 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none"
+                    >
+                      <option value="">Select Zone</option>
+                      {zones?.map((zone) => (
+                        <option key={zone.id} value={zone.name}>
+                          {zone.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </details>
+
                 <button
-                  onClick={() => handleNavigate("/reports")}
+                  onClick={() => handleNavigate("/")}
                   className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50 transition-colors"
                 >
-                  <BarChart3 className="w-4 h-4" /> Reports
+                  <Users className="w-4 h-4" /> Data Upload
                 </button>
-                <button
-                  onClick={() => handleNavigate("/settings")}
-                  className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50 transition-colors"
-                >
-                  <Settings className="w-4 h-4" /> Settings
-                </button>
+
                 <hr className="my-2" />
                 <button
                   onClick={handleLogout}
@@ -187,21 +247,12 @@ export default function Navbar() {
                 </button>
               </>
             ) : (
-              // Non-Authenticated Mobile Menu
-              <>
-                <button
-                  onClick={() => handleNavigate("/")}
-                  className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50 transition-colors"
-                >
-                  <Users className="w-4 h-4" /> Home
-                </button>
-                <button
-                  onClick={() => handleNavigate("/login")}
-                  className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50 transition-colors"
-                >
-                  <Users className="w-4 h-4" /> Login
-                </button>
-              </>
+              <button
+                onClick={() => handleNavigate("/login")}
+                className="flex items-center gap-2 px-6 py-2 hover:bg-gray-50 transition-colors"
+              >
+                <Users className="w-4 h-4" /> Login
+              </button>
             )}
           </nav>
         </div>

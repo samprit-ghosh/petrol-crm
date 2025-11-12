@@ -66,7 +66,7 @@ const Dashboard = () => {
   const quickActions = [
     { label: 'Zonal Management', icon: '👥', description: 'Manage all system users', path: '/zone' },
     { label: 'User Management', icon: '💾', description: 'Handle outlet data entries', path: '/usermanagement' },
-    { label: 'System Reports', icon: '📈', description: 'View analytics and reports', path: '/system-reports' },
+    { label: 'System Reports', icon: '📈', description: 'View analytics and reports', path: '/comparision' },
   ];
 
 
@@ -83,42 +83,6 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
-  // Console log user data when component mounts or when user data changes
-  // useEffect(() => {
-  //   console.log("🏠 DASHBOARD COMPONENT LOADED");
-  //   console.log("=== AUTHENTICATION STATUS ===");
-  //   console.log("Is Authenticated:", isAuthenticated);
-  //   console.log("Has Token:", !!token);
-  //   console.log("Has User Data:", !!user);
-    
-  //   if (isAuthenticated && user) {
-  //     console.log("🎯 LOGGED IN USER DATA ON DASHBOARD:");
-  //     console.log("=== USER DETAILS ===");
-  //     console.log("Full User Object:", user);
-  //     console.log("User Email:", user.email);
-  //     console.log("User Name:", user.name || user.username || "Not provided");
-  //     console.log("User Role:", user.role || "Not specified");
-  //     console.log("User ID:", user.id || user._id || "Not available");
-      
-  //     // Log all user properties
-  //     console.log("=== ALL USER PROPERTIES ===");
-  //     Object.keys(user).forEach(key => {
-  //       console.log(`${key}:`, user[key]);
-  //     });
-
-  //     console.log("=== STORAGE VERIFICATION ===");
-  //     console.log("LocalStorage Token exists:", !!localStorage.getItem('token'));
-  //     console.log("LocalStorage User exists:", !!localStorage.getItem('user'));
-      
-  //     if (localStorage.getItem('user')) {
-  //       const storedUser = JSON.parse(localStorage.getItem('user'));
-  //       console.log("Stored User Data:", storedUser);
-  //     }
-  //   } else {
-  //     console.log("❌ No user data available - using fallback mock data");
-  //     console.log("Current fallback user:", currentUser);
-  //   }
-  // }, [isAuthenticated, user, token, currentUser]);
 
   return (
     <div className=" bg-gray-50">
