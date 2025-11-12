@@ -8,6 +8,7 @@ import userRoutes from "./routes/userRoutes.js";
 import outletRoutes from "./routes/outletRoutes.js";
 import saleRoutes from "./routes/saleRoutes.js";
 import reportRoutes from "./routes/reportRoutes.js";
+import performanceRoute from "./routes/performanceRoutes.js";
 
 dotenv.config();
 connectDB();
@@ -21,6 +22,7 @@ app.use("/api/users", userRoutes);
 app.use("/api/outlets", outletRoutes);
 app.use("/api/sales", saleRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/performance", performanceRoute);
 
 app.get("/", (req, res) => res.send("Fuel Sales Tracker API running"));
 

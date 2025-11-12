@@ -6,6 +6,9 @@ import Outlet from "../models/Outlet.js";
 dotenv.config({ path: "../.env" });
 connectDB();
 
+// Helper function: generate 5-digit random code
+const generateSapCode = () => String(Math.floor(1000 + Math.random() * 9000));
+
 const seedOutlets = async () => {
     try {
         const AURANGABAAD_ZONE_ID = new mongoose.Types.ObjectId("68fba5ead9e945db0dc2f7bf");
@@ -13,684 +16,298 @@ const seedOutlets = async () => {
         const rawData = {
             outlets: [
                 {
-                    "region": "",
-                    "sapCode": "41047951",
-                    "name": "EKVIRA PETROLEUM",
-                    "address": "GAT NO 371, VILLAGE NANDUR SHINGOTE, DIST. NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "SMT. SUNITA RAJU SHELKE",
-                        "mobile": "9822683648",
-                        "email": "41047951@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "SWAPNIL SANAP",
-                        "mobile": "9822683648",
-                        "email": "ekvirapetrolium13@rediffmail.com"
-                    },
-                    "saName": "NASIK-1",
-                    "salesOfficer": {
-                        "name": "ROHIT NIHORE",
-                        "mobile": "8469309427",
-                        "email": "rohitnihore@hpcl.in"
-                    },
-                    "noOfCSAs": 15,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 25,
-                    "nearbyOutlets": ["Hare Krishna", "Shankar Balaji WAJe", "OM SAI BABA"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41048441",
-                    "name": "DESHMANE PETROLEUM",
-                    "address": "GUT NO. 449/6, AT PIMPALGAON (BASWANT), MUMBAI AGRA ROAD, NH-3, DIST NASHIK.",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "SATISH RAMARAO DESHMANE",
-                        "mobile": "9890446370",
-                        "email": "41048441@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "SATISH DESHMANE",
-                        "mobile": "9890446370",
-                        "email": "deshmanepetroleum@gmail.com"
-                    },
-                    "saName": "NASIK-1",
-                    "salesOfficer": {
-                        "name": "ROHIT NIHORE",
-                        "mobile": "8469309427",
-                        "email": "rohitnihore@hpcl.in"
-                    },
-                    "noOfCSAs": 16,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 30,
-                    "nearbyOutlets": ["THETE PATIL", "SAI SHRADHA"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41040578",
-                    "name": "OM SAI PETROLEUM",
-                    "address": "SURVEY NO 1507, VILLAGE ADGAON, TAL & DIST. NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "SHRI BHASKAR BANDU PAWAR",
-                        "mobile": "9403158060",
-                        "email": "41040578@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "BHASKAR B PAWAR",
-                        "mobile": "9403158060",
-                        "email": "omsai9petroleum@gmail.com"
-                    },
-                    "saName": "NASIK-1",
-                    "salesOfficer": {
-                        "name": "ROHIT NIHORE",
-                        "mobile": "8469309427",
-                        "email": "rohitnihore@hpcl.in"
-                    },
-                    "noOfCSAs": 18,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 20,
-                    "nearbyOutlets": ["SHIVSAI", "NIVRUTI JADHAV"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41047760",
-                    "name": "SHREE DUTT PETROLEUM",
-                    "address": "SURVEY NO. 22/1, HISSA NO 3, AT VIHITGAON, DEOLALI CAMP ROAD, NASHIK ROAD, TAL & DIST NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "SMT. VIDYA BAPU WAVARE",
-                        "mobile": "9822342008",
-                        "email": "41047760@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "VIDYA WAWRE",
-                        "mobile": "9822342008",
-                        "email": "shreedattpetroleum@gmail.com"
-                    },
-                    "saName": "NASIK-1",
-                    "salesOfficer": {
-                        "name": "ROHIT NIHORE",
-                        "mobile": "8469309427",
-                        "email": "rohitnihore@hpcl.in"
-                    },
-                    "noOfCSAs": 20,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 25,
-                    "nearbyOutlets": ["SAKSHI", "MURLI PETROLEUM"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41034394",
-                    "name": "SHREE BALAJI ENERGY PLAZA",
-                    "address": "GAT NO 577, VILLAGE JANORI TAL DINDORI",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "PANDURANG RAMCHANDRA WAGH AND VISHAL ARUN SARODE",
-                        "mobile": "8237772233",
-                        "email": "41034394@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "PANDURANG RAMCHANDRA WAGH AND VISHAL ARUN SARODE",
-                        "mobile": "8237772233",
-                        "email": "41034394@retail.hpcl.co.in"
-                    },
-                    "saName": "NASIK-1",
-                    "salesOfficer": {
-                        "name": "ROHIT NIHORE",
-                        "mobile": "8469309427",
-                        "email": "rohitnihore@hpcl.in"
-                    },
-                    "noOfCSAs": 18,
-                    "sittingSpaceAvailable": false,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 20,
-                    "nearbyOutlets": ["SHIVAM CITY"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41050103",
-                    "name": "SUMAN PETROLEUM",
-                    "address": "SURVEY NO 883/1/2, PLOT NO 4,5,9,10,11 & 12, NASHIK CTY, RANE NAGAR, NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "AJIT PANDIT DHATRAK",
-                        "mobile": "7774981653",
-                        "email": "41050103@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "AJIT DHATRAK",
-                        "mobile": "7774981653",
-                        "email": "sumanpetrolium01@gmail.com"
-                    },
-                    "saName": "NASIK-2",
-                    "salesOfficer": {
-                        "name": "SONAWANE PRATHMESH SOMNATH",
-                        "mobile": "9307957620",
-                        "email": "prathmeshsomnath.sonawane@hpcl.in"
-                    },
-                    "noOfCSAs": 20,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 20,
-                    "nearbyOutlets": ["SUVIDYA PETROLEUM", "N& M PETROLEUM"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41052407",
-                    "name": "KR BOOB",
-                    "address": "PLOT NO. 8 MIDC, AMBAD NASHIK.",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "LALIT PRADEEP BOOB AND SAKSHI LALIT BOOB",
-                        "mobile": "9922009908",
-                        "email": "41052407@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "LALIT PRADEEP BOOB AND SAKSHI LALIT BOOB",
-                        "mobile": "9922009908",
-                        "email": "krboob@gmail.com"
-                    },
-                    "saName": "NASIK-2",
-                    "salesOfficer": {
-                        "name": "SONAWANE PRATHMESH SOMNATH",
-                        "mobile": "9307957620",
-                        "email": "prathmeshsomnath.sonawane@hpcl.in"
-                    },
-                    "noOfCSAs": 16,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 20,
-                    "nearbyOutlets": ["P E GOMASE", "VISHAL PETROLEUM", "SUYOG PETROLEUM", "KOUSALYA PETROLEUM"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41047886",
-                    "name": "PANDAV PETROLEUM",
-                    "address": "GUT NO. 753, DINDORI TOWN, TALUKA : DINDORI & DISTRICT : NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "ROSHAN DILIP JADHAV",
-                        "mobile": "9890670551",
-                        "email": "41047886@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "ROSHAN JADHAV",
-                        "mobile": "9890670551",
-                        "email": "pandavpetroleum@gmail.com"
-                    },
-                    "saName": "NASIK-2",
-                    "salesOfficer": {
-                        "name": "SONAWANE PRATHMESH SOMNATH",
-                        "mobile": "9307957620",
-                        "email": "prathmeshsomnath.sonawane@hpcl.in"
-                    },
-                    "noOfCSAs": 15,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 30,
-                    "nearbyOutlets": ["ADISHAKTI PETROLEUM", "ASMITATAI DIGHAVKAR PETROLEUM"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41047737",
-                    "name": "SANJIVANI AUTO FUEL",
-                    "address": "GUT NO 17/2, VILLAGE VILHOLI, MUMBAI AGRA ROAD, TALUKA & DIST NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "SAMEER  SONAWANE",
-                        "mobile": "9890065333",
-                        "email": "41047737@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "SAMEER SONAWANE",
-                        "mobile": "9890065333",
-                        "email": "samirsonawane@yahoo.com"
-                    },
-                    "saName": "NASIK-2",
-                    "salesOfficer": {
-                        "name": "SONAWANE PRATHMESH SOMNATH",
-                        "mobile": "9307957620",
-                        "email": "prathmeshsomnath.sonawane@hpcl.in"
-                    },
+                    "region": "Aurangabad",
+                    "sapCode": "414670932",
+                    "name": "HP Service Centre Harsul",
+                    "address": "Harsul, Aurangabad",
+                    "district": "Aurangabad",
+                    "dealer": { "name": "Rahul Patil", "mobile": "9876543210", "email": "rahul.patil@hpcl.co.in" },
+                    "roManager": { "name": "Vikas Deshmukh", "mobile": "9876501234", "email": "vikas.deshmukh@hpcl.co.in" },
+                    "saName": "Aurangabad-1",
+                    "salesOfficer": { "name": "Amit Bhosale", "mobile": "9823124578", "email": "amit.bhosale@hpcl.in" },
                     "noOfCSAs": 12,
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
-                    "standingCapacity": 20,
-                    "nearbyOutlets": ["PARVATI FILLING STATION", "KOTHULE PETROLEUM", "PRATIK FUEL PLAZA"]
+                    "standingCapacity": 18,
+                    "nearbyOutlets": ["Shree Auto Care", "Om Petroleum"]
                 },
                 {
-                    "region": "",
-                    "sapCode": "41047877",
-                    "name": "BHOSALE PETROLEUM",
-                    "address": "SURVEY NO. 134 (P), SOYAGAON VILLAGE, POST : SOYAGAON (N), TALUKA : MALEGAON, DISTIRCT : NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "BHUSHAN BHOSALE",
-                        "mobile": "9422273666",
-                        "email": "41047877@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "BUSHAN BHOSLE",
-                        "mobile": "9422273666",
-                        "email": "bhosale.petroleum@yahoo.com"
-                    },
-                    "saName": "MANMAD",
-                    "salesOfficer": {
-                        "name": "SHOBIT SONI",
-                        "mobile": "8193909938",
-                        "email": "shobit.soni@hpcl.in"
-                    },
-                    "noOfCSAs": 25,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 35,
-                    "nearbyOutlets": ["MSHSD RAMESH & BROTHERS", "M/s FIDVI AGENCIES", "RAGHAV PETROLEUM", "RADHIKA PETROLEUM", "NARMADA PETROLEUM", "TRYAMBAKRAJ PETROLEUM"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41037875",
-                    "name": "ZARIWALA FUEL STATION",
-                    "address": "GAT NO 159/5/159/7 VILLAGE DAREGAON TAL MALEGAON & DIST NASHIK",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "MAHFUZURRAHMAN MOHAMMED ISHAQUE",
-                        "mobile": "9860205656",
-                        "email": "41037875@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "MAHFUZURRAHMAN MOHAMMED ISHAQUE",
-                        "mobile": "9860205656",
-                        "email": "41037875@retail.hpcl.co.in"
-                    },
-                    "saName": "MANMAD",
-                    "salesOfficer": {
-                        "name": "SHOBIT SONI",
-                        "mobile": "8193909938",
-                        "email": "shobit.soni@hpcl.in"
-                    },
-                    "noOfCSAs": 20,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 30,
-                    "nearbyOutlets": ["MSHSD MALPURE PETROLEUM", "MANJULE PETROLEUM", "JAY SHANKAR PETROLEUM"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41052589",
-                    "name": "MANMAD AUTOMOBILES",
-                    "address": "MALEGAON NAKA , MANMAD, DIST NASHIK.",
-                    "district": "NASHIK",
-                    "dealer": {
-                        "name": "1) ALTAF MOHMAD DAWOOD, 2) MOHMAD SALIM AHMAD, 3) AMIN HAJI MOHMAD HARRON, 4) MOHMAD AMIR HAJI YUNUS, 5) AADIL HAJI ARIF",
-                        "mobile": "9970710563",
-                        "email": "41052589@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "1) ALTAF MOHMAD DAWOOD, 2) MOHMAD SALIM AHMAD, 3) AMIN HAJI MOHMAD HARRON, 4) MOHMAD AMIR HAJI YUNUS, 5) AADIL HAJI ARIF",
-                        "mobile": "9970710563",
-                        "email": "41052589@retail.hpcl.co.in"
-                    },
-                    "saName": "MANMAD",
-                    "salesOfficer": {
-                        "name": "SHOBIT SONI",
-                        "mobile": "8193909938",
-                        "email": "shobit.soni@hpcl.in"
-                    },
-                    "noOfCSAs": 25,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 35,
-                    "nearbyOutlets": ["MSHSD SHREE GURUKRUPA PETROLEUM", "BANKAR PATIL PETROLEUM", "YASH ENERGY"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41053714",
-                    "name": "S S P S SETHI BROTHERS",
-                    "address": "S.NO.302/1&2, AT POST DEOBHANE, DISTRICT-DHULE",
-                    "district": "DHULE",
-                    "dealer": {
-                        "name": "1) SMT. CHARANJIT KAUR SHETHI,                     2) SHRI K.S. SETHI",
-                        "mobile": "9960681888",
-                        "email": "41053714@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "1) SMT. CHARANJIT KAUR SHETHI,                     2) SHRI K.S. SETHI",
-                        "mobile": "9960681888",
-                        "email": "41053714@retail.hpcl.co.in"
-                    },
-                    "saName": "DHULE",
-                    "salesOfficer": {
-                        "name": "RANJAN",
-                        "mobile": "7770822249",
-                        "email": "ranjan1@hpcl.in"
-                    },
-                    "noOfCSAs": 12,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 25,
-                    "nearbyOutlets": ["M/s SHREE RAMDEV PETROLEUM & M/s. Shri Shri Balaji"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41024088",
-                    "name": "SUBHASH CHANDRA AND SONS",
-                    "address": "GAT NO. 127/2/3/क, PLOT NO. - 1, VILLAGE LALING, TAL DHULE, DIST. DHULE",
-                    "district": "DHULE",
-                    "dealer": {
-                        "name": "SHRI SUSHIL LALCHAND POPLI",
-                        "mobile": "9960004118",
-                        "email": "41024088@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "SUSHIL POPLI",
-                        "mobile": "9960004118",
-                        "email": "subhashchandra.281@rediffmail.com"
-                    },
-                    "saName": "DHULE",
-                    "salesOfficer": {
-                        "name": "RANJAN",
-                        "mobile": "7770822249",
-                        "email": "ranjan1@hpcl.in"
-                    },
+                    "region": "Aurangabad",
+                    "sapCode": "417851024",
+                    "name": "Girija Samarth",
+                    "address": "Sarnapur, Aurangabad",
+                    "district": "Aurangabad",
+                    "dealer": { "name": "Sunil Jadhav", "mobile": "9876509876", "email": "sunil.jadhav@hpcl.co.in" },
+                    "roManager": { "name": "Pooja Kale", "mobile": "9867098543", "email": "pooja.kale@hpcl.co.in" },
+                    "saName": "Aurangabad-1",
+                    "salesOfficer": { "name": "Ramesh Pawar", "mobile": "9812345678", "email": "ramesh.pawar@hpcl.in" },
                     "noOfCSAs": 10,
-                    "sittingSpaceAvailable": false,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 25,
-                    "nearbyOutlets": ["M/s KRISHNA PETROLEUM", "SAKRI & Koyal Automobiles"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41054462",
-                    "name": "VIGHNAHAR HIGHWAY SERVICE",
-                    "address": "S.NO. 47/1/PART, BODKI KHADI(DAHIVEL), TAL-SAKRI, DIS- DHULE",
-                    "district": "DHULE",
-                    "dealer": {
-                        "name": "SMT. RAJNI VIRENDRA JAIN",
-                        "mobile": "9665558888",
-                        "email": "41054462@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "RAJANI JAIN",
-                        "mobile": "9665558888",
-                        "email": "virendrajain88@yahoo.co.in"
-                    },
-                    "saName": "DHULE",
-                    "salesOfficer": {
-                        "name": "RANJAN",
-                        "mobile": "7770822249",
-                        "email": "ranjan1@hpcl.in"
-                    },
-                    "noOfCSAs": 11,
-                    "sittingSpaceAvailable": false,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 15,
-                    "nearbyOutlets": ["No outlet is nearby"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41050904",
-                    "name": "M/s SATPUDA PETROLEUM, SANGVI",
-                    "address": "GUT NO.3/2/A, AT VILLAGE SANGHAVI, TALUKA-SHIRPUR, DISTRICT- DHULE",
-                    "district": "DHULE",
-                    "dealer": {
-                        "name": "SHRI KRANTIKUMAR BUDHA PAWAR AND KULDIP ASHOK GAIKWAD",
-                        "mobile": "9422286807",
-                        "email": "41050904@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "SHRI KRANTIKUMAR BUDHA PAWAR AND KULDIP ASHOK GAIKWAD",
-                        "mobile": "9422286807",
-                        "email": "41050904@retail.hpcl.co.in"
-                    },
-                    "saName": "DHULE",
-                    "salesOfficer": {
-                        "name": "RANJAN",
-                        "mobile": "7770822249",
-                        "email": "ranjan1@hpcl.in"
-                    },
-                    "noOfCSAs": 11,
-                    "sittingSpaceAvailable": true,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 25,
-                    "nearbyOutlets": ["M/s SHREE SAI PETROLEUM", "HADAKHED & Vinayak Petroleum"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41044396",
-                    "name": "M/s VAHEGURU PETROLEUM, SAVALDE",
-                    "address": "GAT NO. 108,SAVALDE, SHIRPUR, DHULE",
-                    "district": "DHULE",
-                    "dealer": {
-                        "name": "MS. SANDHYA SALUJA",
-                        "mobile": "9823193111",
-                        "email": "41044396@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "SANDHYA SALUJA",
-                        "mobile": "9823193111",
-                        "email": "41044396@retail.hpcl.co.in"
-                    },
-                    "saName": "DHULE",
-                    "salesOfficer": {
-                        "name": "RANJAN",
-                        "mobile": "7770822249",
-                        "email": "ranjan1@hpcl.in"
-                    },
-                    "noOfCSAs": 9,
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
                     "standingCapacity": 20,
-                    "nearbyOutlets": ["M/s SHRI SHAM PETROLEUM", "KURKHALI"]
+                    "nearbyOutlets": ["Sai Petroleum", "Jai Malhar"]
                 },
                 {
-                    "region": "",
-                    "sapCode": "41044392",
-                    "name": "M/s BHOLENATH PETROLEUM, SHIRPUR KH",
-                    "address": "GAT NO. 7/A/5 & 7/A/6, SHIRPUR KHURDE, DHULE",
-                    "district": "DHULE",
-                    "dealer": {
-                        "name": "MR. DINESH MADHUKAR PATIL",
-                        "mobile": "9021154530",
-                        "email": "41044392@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "DINESH PATIL",
-                        "mobile": "9021154530",
-                        "email": "41044392@retail.hpcl.co.in"
-                    },
-                    "saName": "DHULE",
-                    "salesOfficer": {
-                        "name": "RANJAN",
-                        "mobile": "7770822249",
-                        "email": "ranjan1@hpcl.in"
-                    },
-                    "noOfCSAs": 12,
-                    "sittingSpaceAvailable": false,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 25,
-                    "nearbyOutlets": ["GOVIND PETROLIUM", "GORANE"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41045555",
-                    "name": "JAGMA PETROLEUM",
-                    "address": "GAT NO. 50/3/A, KHED DIGAR, TAL. SHAHADA, DIST. NANDURBAR",
-                    "district": "NANDURBAR",
-                    "dealer": {
-                        "name": "MR. PRIYANK PATIL",
-                        "mobile": "8007790077",
-                        "email": "41045555@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "PRIYANK PATIL",
-                        "mobile": "8007790077",
-                        "email": "41045555@retail.hpcl.co.in"
-                    },
-                    "saName": "DHULE",
-                    "salesOfficer": {
-                        "name": "RANJAN",
-                        "mobile": "7770822249",
-                        "email": "ranjan1@hpcl.in"
-                    },
-                    "noOfCSAs": 12,
-                    "sittingSpaceAvailable": false,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 15,
-                    "nearbyOutlets": ["No outlet is nearby"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41051686",
-                    "name": "KABRA HIGHWAY PETROLEUM",
-                    "address": "GUT NO. 770(P), NEAR SAGAR GO GAS , SH-4, CHOPDA, DIST-JALGAON",
-                    "district": "JALGAON",
-                    "dealer": {
-                        "name": "SHRI NITIN SATYANARAYAN KABRE",
-                        "mobile": "9822218851",
-                        "email": "41051686@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "NITIN KABRE",
-                        "mobile": "9822218851",
-                        "email": "niteen_kabre@rediffmail.com"
-                    },
-                    "saName": "JALGAON",
-                    "salesOfficer": {
-                        "name": "RAVI KUMAR BORI BORI",
-                        "mobile": "9769991231",
-                        "email": "ravikbori@hpcl.in"
-                    },
-                    "noOfCSAs": 11,
+                    "region": "Aurangabad",
+                    "sapCode": "419384207",
+                    "name": "HP Service Centre Supa",
+                    "address": "Supa, Ahmednagar",
+                    "district": "Ahmednagar",
+                    "dealer": { "name": "Deepa Shinde", "mobile": "9898098754", "email": "deepa.shinde@hpcl.co.in" },
+                    "roManager": { "name": "Akash Jagtap", "mobile": "9823765409", "email": "akash.jagtap@hpcl.co.in" },
+                    "saName": "Ahmendnagar",
+                    "salesOfficer": { "name": "Kiran Lokhande", "mobile": "9821765409", "email": "kiran.lokhande@hpcl.in" },
+                    "noOfCSAs": 14,
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
                     "standingCapacity": 22,
-                    "nearbyOutlets": ["PAWAR PETROLEUM", "MAHESH PETROLEUM"]
+                    "nearbyOutlets": ["Raj Petroleum", "Sai Auto Fuel"]
                 },
                 {
-                    "region": "",
-                    "sapCode": "41053805",
-                    "name": "DESHMUKH BROTHERS",
-                    "address": "S.NO. 833/2, AT VARANGAON , DISTRICT JALGAON",
-                    "district": "JALGAON",
-                    "dealer": {
-                        "name": "SHRI SAMBHAJI N. DESHMUKH SHRI UDAY N. DESHMUKH & SHRI SANJAY N. DESHMUKH",
-                        "mobile": "9423187777/7249737777",
-                        "email": "41053805@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "SHRI SAMBHAJI N. DESHMUKH SHRI UDAY N. DESHMUKH & SHRI SANJAY N. DESHMUKH",
-                        "mobile": "9423187777/7249737777",
-                        "email": "mlsdeshmukhbros@gmail.com"
-                    },
-                    "saName": "JALGAON",
-                    "salesOfficer": {
-                        "name": "RAVI KUMAR BORI BORI",
-                        "mobile": "9769991231",
-                        "email": "ravikbori@hpcl.in"
-                    },
-                    "noOfCSAs": 16,
+                    "region": "Aurangabad",
+                    "sapCode": "415009876",
+                    "name": "Star Petroleum",
+                    "address": "Jamkhed-Arangaon, Ahmednagar",
+                    "district": "Ahmednagar",
+                    "dealer": { "name": "Aarti Kulkarni", "mobile": "9823156790", "email": "aarti.kulkarni@hpcl.co.in" },
+                    "roManager": { "name": "Nikhil Shinde", "mobile": "9874562130", "email": "nikhil.shinde@hpcl.co.in" },
+                    "saName": "Ahmendnagar",
+                    "salesOfficer": { "name": "Anita More", "mobile": "9823167485", "email": "anita.more@hpcl.in" },
+                    "noOfCSAs": 13,
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
-                    "standingCapacity": 30,
-                    "nearbyOutlets": ["DENA SAI AUTO SERVICE", "CHANDRODAY PETROLEUM", "SSD PETROLEUM"]
+                    "standingCapacity": 24,
+                    "nearbyOutlets": ["Rajendra Fuel", "Ganesh Auto"]
                 },
                 {
-                    "region": "",
-                    "sapCode": "41052070",
-                    "name": "KALE PETROLEUM",
-                    "address": "GUT NO. 158,CST NO. 3505(PART), ON OLD DECLASSIFIED JALGAON -BHUSAWAL ROAD, JALGAON CITY",
-                    "district": "JALGAON",
-                    "dealer": {
-                        "name": "SHRI RAJENDRA PRALHAD KALE",
-                        "mobile": "9423580873",
-                        "email": "41052070@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "RAJENDRA KALE",
-                        "mobile": "9423580873",
-                        "email": "kaleraju333@gmail.com"
-                    },
-                    "saName": "JALGAON",
-                    "salesOfficer": {
-                        "name": "RAVI KUMAR BORI BORI",
-                        "mobile": "9769991231",
-                        "email": "ravikbori@hpcl.in"
-                    },
-                    "noOfCSAs": 17,
-                    "sittingSpaceAvailable": false,
-                    "islandSpaceAvailable": true,
-                    "standingCapacity": 20,
-                    "nearbyOutlets": ["BHAGYASHRI PETROLEUM", "GURU  PETROLEUM"]
-                },
-                {
-                    "region": "",
-                    "sapCode": "41041471",
-                    "name": "PUSHPA PETROLEUM",
-                    "address": "PLOT NO SECTOR H-11-1,  VILLAGE MEHRUN, TAL & DIST JALGAON",
-                    "district": "JALGAON",
-                    "dealer": {
-                        "name": "RAJESH OMPRAKASH AGRAWAL",
-                        "mobile": "9823047269",
-                        "email": "41041471@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "RAJESH AGRAWAL",
-                        "mobile": "9823047269",
-                        "email": "pushpapulses01@ymail.com"
-                    },
-                    "saName": "JALGAON",
-                    "salesOfficer": {
-                        "name": "RAVI KUMAR BORI BORI",
-                        "mobile": "9769991231",
-                        "email": "ravikbori@hpcl.in"
-                    },
-                    "noOfCSAs": 18,
+                    "region": "Aurangabad",
+                    "sapCode": "412578934",
+                    "name": "Supreme Petroleum",
+                    "address": "Kasabkheda, Aurangabad",
+                    "district": "Aurangabad",
+                    "dealer": { "name": "Sneha Deshpande", "mobile": "9832165487", "email": "sneha.deshpande@hpcl.co.in" },
+                    "roManager": { "name": "Sachin Bhagat", "mobile": "9812376549", "email": "sachin.bhagat@hpcl.co.in" },
+                    "saName": "Aurangabad-2",
+                    "salesOfficer": { "name": "Kavita Gaikwad", "mobile": "9823476190", "email": "kavita.gaikwad@hpcl.in" },
+                    "noOfCSAs": 11,
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
-                    "standingCapacity": 15,
-                    "nearbyOutlets": ["SHRI GURU GANESH PETROLEUM", "JAIN BROTHERS"]
+                    "standingCapacity": 19,
+                    "nearbyOutlets": ["Sai Highway", "Shree Motors"]
                 },
                 {
-                    "region": "",
-                    "sapCode": "41047750",
-                    "name": "BABA PETROLEUM",
-                    "address": "GAT NO. 3/2/2/A, CHALISGAON, DIST. JALGAON",
-                    "district": "JALGAON",
-                    "dealer": {
-                        "name": "RAVINDRA PUNDALIK PATIL",
-                        "mobile": "9028700800",
-                        "email": "41047750@retail.hpcl.co.in"
-                    },
-                    "roManager": {
-                        "name": "RAVINDRA PATIL",
-                        "mobile": "9028700800",
-                        "email": "tenujay24@yahoo.in"
-                    },
-                    "saName": "JALGAON",
-                    "salesOfficer": {
-                        "name": "RAVI KUMAR BORI BORI",
-                        "mobile": "9769991231",
-                        "email": "ravikbori@hpcl.in"
-                    },
+                    "region": "Aurangabad",
+                    "sapCode": "416993485",
+                    "name": "HP Auto Care Centre Waluj",
+                    "address": "Waluj, Aurangabad",
+                    "district": "Aurangabad",
+                    "dealer": { "name": "Vijay Patil", "mobile": "9823678941", "email": "vijay.patil@hpcl.co.in" },
+                    "roManager": { "name": "Tejas Jadhav", "mobile": "9812789463", "email": "tejas.jadhav@hpcl.co.in" },
+                    "saName": "Aurangabad-2",
+                    "salesOfficer": { "name": "Rohit Borse", "mobile": "9876231450", "email": "rohit.borse@hpcl.in" },
                     "noOfCSAs": 15,
                     "sittingSpaceAvailable": true,
                     "islandSpaceAvailable": true,
-                    "standingCapacity": 11,
-                    "nearbyOutlets": ["JOGESHWARI PETROLEUM"]
+                    "standingCapacity": 25,
+                    "nearbyOutlets": ["Om Petroleum", "Sai Service Station"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "414820557",
+                    "name": "Satguru Highway",
+                    "address": "Chikhli, Buldhana",
+                    "district": "Buldhana",
+                    "dealer": { "name": "Ashwini Pawar", "mobile": "9874501287", "email": "ashwini.pawar@hpcl.co.in" },
+                    "roManager": { "name": "Anil Mane", "mobile": "9823478561", "email": "anil.mane@hpcl.co.in" },
+                    "saName": "Jalna",
+                    "salesOfficer": { "name": "Shruti More", "mobile": "9832761590", "email": "shruti.more@hpcl.in" },
+                    "noOfCSAs": 10,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": false,
+                    "standingCapacity": 18,
+                    "nearbyOutlets": ["OM Sai Fuel", "Balaji Petroleum"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "415703924",
+                    "name": "Kakde Petroleum",
+                    "address": "Nagewadi, Jalna",
+                    "district": "Jalna",
+                    "dealer": { "name": "Kiran Kakde", "mobile": "9823158709", "email": "kiran.kakde@hpcl.co.in" },
+                    "roManager": { "name": "Pravin Nikam", "mobile": "9867452310", "email": "pravin.nikam@hpcl.co.in" },
+                    "saName": "Jalna",
+                    "salesOfficer": { "name": "Deepali Pawar", "mobile": "9823456790", "email": "deepali.pawar@hpcl.in" },
+                    "noOfCSAs": 14,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 20,
+                    "nearbyOutlets": ["Mahalaxmi Fuel", "Sai Fuel Point"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "416983210",
+                    "name": "Shri Sai Petroleum",
+                    "address": "New Mondha, Jalna",
+                    "district": "Jalna",
+                    "dealer": { "name": "Pradeep Raut", "mobile": "9823156489", "email": "pradeep.raut@hpcl.co.in" },
+                    "roManager": { "name": "Snehal Patil", "mobile": "9873214590", "email": "snehal.patil@hpcl.co.in" },
+                    "saName": "Jalna",
+                    "salesOfficer": { "name": "Manish Korde", "mobile": "9812456732", "email": "manish.korde@hpcl.in" },
+                    "noOfCSAs": 13,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 22,
+                    "nearbyOutlets": ["Sai Auto", "Omkar Fuels"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "418320749",
+                    "name": "SKGs Sai Siddhi Petroleum",
+                    "address": "Shirdi, Ahmednagar",
+                    "district": "Ahmednagar",
+                    "dealer": { "name": "Suresh Kadam", "mobile": "9823654981", "email": "suresh.kadam@hpcl.co.in" },
+                    "roManager": { "name": "Madhuri Gaikwad", "mobile": "9812765432", "email": "madhuri.gaikwad@hpcl.co.in" },
+                    "saName": "Shirdi",
+                    "salesOfficer": { "name": "Rajesh Patil", "mobile": "9876543120", "email": "rajesh.patil@hpcl.in" },
+                    "noOfCSAs": 16,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 25,
+                    "nearbyOutlets": ["Balaji Petroleum", "Sai Auto Care"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "412504376",
+                    "name": "Sneh Petroleum",
+                    "address": "Sangamner, Ahmednagar",
+                    "district": "Ahmednagar",
+                    "dealer": { "name": "Rajendra Pawar", "mobile": "9821456789", "email": "rajendra.pawar@hpcl.co.in" },
+                    "roManager": { "name": "Komal Jagtap", "mobile": "9812786543", "email": "komal.jagtap@hpcl.co.in" },
+                    "saName": "Shirdi",
+                    "salesOfficer": { "name": "Mahesh Patil", "mobile": "9823451769", "email": "mahesh.patil@hpcl.in" },
+                    "noOfCSAs": 12,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 21,
+                    "nearbyOutlets": ["Om Service Station", "Sai Motors"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "414722037",
+                    "name": "Junjhunwala Traders",
+                    "address": "Khamgaon, Buldhana",
+                    "district": "Buldhana",
+                    "dealer": { "name": "Akhilesh Sharma", "mobile": "9876543123", "email": "akhilesh.sharma@hpcl.co.in" },
+                    "roManager": { "name": "Sneha Joshi", "mobile": "9812376514", "email": "sneha.joshi@hpcl.co.in" },
+                    "saName": "Akola",
+                    "salesOfficer": { "name": "Pankaj Bhagat", "mobile": "9823561479", "email": "pankaj.bhagat@hpcl.in" },
+                    "noOfCSAs": 11,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": false,
+                    "standingCapacity": 17,
+                    "nearbyOutlets": ["Sai Traders", "Mahalaxmi Fuel"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "417093504",
+                    "name": "Shri Seva Petroleum",
+                    "address": "Chainchkhed, Akola",
+                    "district": "Akola",
+                    "dealer": { "name": "Laxman Rathod", "mobile": "9823156409", "email": "laxman.rathod@hpcl.co.in" },
+                    "roManager": { "name": "Pooja Deshmukh", "mobile": "9812789654", "email": "pooja.deshmukh@hpcl.co.in" },
+                    "saName": "Akola",
+                    "salesOfficer": { "name": "Ganesh Bhise", "mobile": "9823457689", "email": "ganesh.bhise@hpcl.in" },
+                    "noOfCSAs": 13,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 20,
+                    "nearbyOutlets": ["Om Petroleum", "Suyog Fuels"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "417849301",
+                    "name": "Mauli Petroleum",
+                    "address": "Washim, Akola",
+                    "district": "Washim",
+                    "dealer": { "name": "Suresh Bhoyar", "mobile": "9823165479", "email": "suresh.bhoyar@hpcl.co.in" },
+                    "roManager": { "name": "Sneha Jadhav", "mobile": "9812374568", "email": "sneha.jadhav@hpcl.co.in" },
+                    "saName": "Akola",
+                    "salesOfficer": { "name": "Nitin Kale", "mobile": "9823451690", "email": "nitin.kale@hpcl.in" },
+                    "noOfCSAs": 12,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 18,
+                    "nearbyOutlets": ["Sai Service", "Auto Fuel Point"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "418902547",
+                    "name": "Hind Super",
+                    "address": "Paithan Road, Aurangabad",
+                    "district": "Aurangabad",
+                    "dealer": { "name": "Sameer Khopade", "mobile": "9823147590", "email": "sameer.khopade@hpcl.co.in" },
+                    "roManager": { "name": "Meena Gawande", "mobile": "9812764590", "email": "meena.gawande@hpcl.co.in" },
+                    "saName": "Aurangabad-1",
+                    "salesOfficer": { "name": "Sagar Dhotre", "mobile": "9823146578", "email": "sagar.dhotre@hpcl.in" },
+                    "noOfCSAs": 14,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 22,
+                    "nearbyOutlets": ["Sai Highway", "Balaji Petroleum"]
+                },
+                {
+                    "region": "Aurangabad",
+                    "sapCode": "419805213",
+                    "name": "Narmada",
+                    "address": "Beed Bypass, Aurangabad",
+                    "district": "Aurangabad",
+                    "dealer": { "name": "Nisha Rathore", "mobile": "9823146580", "email": "nisha.rathore@hpcl.co.in" },
+                    "roManager": { "name": "Ajay Kulkarni", "mobile": "9812789650", "email": "ajay.kulkarni@hpcl.co.in" },
+                    "saName": "Aurangabad-2",
+                    "salesOfficer": { "name": "Vaibhav Pawar", "mobile": "9823164750", "email": "vaibhav.pawar@hpcl.in" },
+                    "noOfCSAs": 15,
+                    "sittingSpaceAvailable": true,
+                    "islandSpaceAvailable": true,
+                    "standingCapacity": 25,
+                    "nearbyOutlets": ["Sai Auto Care", "Shree Motors"]
                 }
             ]
         };
 
         // Add zone reference to each outlet
-        const outletsWithZone = rawData.outlets.map(outlet => ({
-            ...outlet,
-            zone: AURANGABAAD_ZONE_ID
+        // ✅ Transform to match Outlet schema
+        const outlets = rawData.outlets.map((o) => ({
+            name: o.name.trim(),
+            code: generateSapCode(),
+            zone: o.region === "Aurangabad" ? AURANGABAAD_ZONE_ID : null,
+            address: o.address,
+            footfallType: "urban",
+            meta: {
+                region: o.region,
+                district: o.district,
+                dealer: {
+                    name: o.dealer?.name || "",
+                    contact: o.dealer?.mobile || "",
+                    email: o.dealer?.email || "",
+                },
+                roManager: {
+                    name: o.roManager?.name || "",
+                    email: o.roManager?.email || "",
+                },
+                sa: o.saName,
+                so: {
+                    name: o.salesOfficer?.name || "",
+                    phone: o.salesOfficer?.mobile || "",
+                    email: o.salesOfficer?.email || "",
+                },
+                facilities: {
+                    noOfCSA: o.noOfCSAs,
+                    hasSittingSpace: o.sittingSpaceAvailable,
+                    hasIslandSpace: o.islandSpaceAvailable,
+                    standingCapacity: o.standingCapacity,
+                },
+                nearbyOutlets: o.nearbyOutlets || [],
+            },
         }));
 
         // Clear existing outlets for this zone
@@ -698,7 +315,7 @@ const seedOutlets = async () => {
         console.log('Cleared existing outlets for Aurangabaad zone');
 
         // Insert new outlets
-        const result = await Outlet.insertMany(outletsWithZone);
+        const result = await Outlet.insertMany(outlets);
         console.log(`Successfully seeded ${result.length} outlets for Aurangabaad zone`);
 
         process.exit(0);
