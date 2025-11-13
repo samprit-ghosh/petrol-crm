@@ -241,7 +241,7 @@
 							"raw": ""
 						},
 						"url": {
-							"raw": "http://localhost:5000/api/outlets?zone=68fb0216c81d0330c1f0b5e5",
+							"raw": "http://localhost:5000/api/outlets",
 							"protocol": "http",
 							"host": [
 								"localhost"
@@ -254,8 +254,47 @@
 							"query": [
 								{
 									"key": "zone",
-									"value": "68fb0216c81d0330c1f0b5e5"
+									"value": "68fb0216c81d0330c1f0b5e5",
+									"disabled": true
 								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Outlet by Id",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"IOCL Test Outlet\",\r\n  \"code\": \"OUT999\",\r\n  \"zone\": \"68fb04e122b13b333341d888\",\r\n  \"footfallType\": \"urban\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/outlets/690dc910ac9eb99efe1b05d3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"outlets",
+								"690dc910ac9eb99efe1b05d3"
 							]
 						}
 					},
@@ -318,7 +357,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\r\n  \"name\": \"IOCL Test Outlet\",\r\n  \"code\": \"OUT999\",\r\n  \"zone\": \"68fb04e122b13b333341d888\",\r\n  \"footfallType\": \"urban\"\r\n}",
+							"raw": "{\r\n  \"name\": \"M/S FUEL POINT, VASCO DA GAMA\",\r\n  \"code\": \"41043876\",\r\n  \"zone\": \"68fba5ead9e945db0dc2f7bf\",\r\n  \"address\": \"HP Petrol Pump, Mundvel, Vasco-Da-Gama, Taluq - Mormugao\",\r\n  \"footfallType\": \"urban\",\r\n  \"meta\": {\r\n    \"region\": \"Vasco RO\",\r\n    \"district\": \"South Goa\",\r\n    \"dealer\": {\r\n      \"name\": \"Sunil Morajkar\",\r\n      \"contact\": \"9822127899\",\r\n      \"email\": \"fuelpointvasco@gmail.com\"\r\n    },\r\n    \"roManager\": {\r\n      \"name\": \"Prakash Naik\",\r\n      \"email\": \"prakashnorpnha17@gmail.com\"\r\n    },\r\n    \"sa\": \"Vasco Retail S.A.\",\r\n    \"so\": {\r\n      \"name\": \"Mayank Mittal\",\r\n      \"phone\": \"7814801978\",\r\n      \"email\": \"Mayank.Mittal@hpcl.in\"\r\n    },\r\n    \"facilities\": {\r\n      \"noOfCSA\": 18,\r\n      \"hasSittingSpace\": true,\r\n      \"hasIslandSpace\": true,\r\n      \"standingCapacity\": 25\r\n    },\r\n    \"nearbyOutlets\": [\"M/S KAVLEKARS FUEL STATION, SANCOALE\"]\r\n  }\r\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -335,6 +374,81 @@
 							"path": [
 								"api",
 								"outlets"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Outlet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"M/S FUEL POINT, VASCO DA GAMA (Updated)\",\r\n  \"address\": \"Updated address near Airport Vasco\",\r\n  \"footfallType\": \"highway\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/outlets/690dc910ac9eb99efe1b05d3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"outlets",
+								"690dc910ac9eb99efe1b05d3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Outlet",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"name\": \"M/S FUEL POINT, VASCO DA GAMA (Updated)\",\r\n  \"address\": \"Updated address near Airport Vasco\",\r\n  \"footfallType\": \"highway\"\r\n}"
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/outlets/690dc910ac9eb99efe1b05d3",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"outlets",
+								"690dc910ac9eb99efe1b05d3"
 							]
 						}
 					},
@@ -420,6 +534,243 @@
 								"api",
 								"sales",
 								"csv"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reports",
+			"item": [
+				{
+					"name": "Get Outlet Reports",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/reports/outlet/68fb03ef22b13b333341d672",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"reports",
+								"outlet",
+								"68fb03ef22b13b333341d672"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Zone Reports",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/reports/zone/68fb0216c81d0330c1f0b5e7",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"reports",
+								"zone",
+								"68fb0216c81d0330c1f0b5e7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Overall Reports",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/reports/overall",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"reports",
+								"overall"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get Base-line Compare Reports",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": []
+						},
+						"url": {
+							"raw": "http://localhost:5000/api/reports/baseline-compare/68fb03ef22b13b333341d672",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"reports",
+								"baseline-compare",
+								"68fb03ef22b13b333341d672"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "CSA Report",
+			"item": [
+				{
+					"name": "Get CSA Compare for Pre and Post",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/performance/compare?csa=69137a58fc317010df3aede4&outlet=69133185a961db76679c6032",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"performance",
+								"compare"
+							],
+							"query": [
+								{
+									"key": "csa",
+									"value": "69137a58fc317010df3aede4"
+								},
+								{
+									"key": "outlet",
+									"value": "69133185a961db76679c6032"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get all Performance",
+					"request": {
+						"auth": {
+							"type": "bearer",
+							"bearer": [
+								{
+									"key": "token",
+									"value": "{{JWT_PETROLEUM}}",
+									"type": "string"
+								}
+							]
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/api/performance/",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"api",
+								"performance",
+								""
 							]
 						}
 					},
