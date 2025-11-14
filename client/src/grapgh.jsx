@@ -1,155 +1,49 @@
-import React from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { fetchPerformanceData } from './store/performanceSlice';
+import { fetchZonesData } from './store/zonesSlice';
 
-// Responsive Chart Components
-const PieChart = ({ data, colors, size = 'md' }) => {
-  const total = data.reduce((sum, item) => sum + item.value, 0);
-  let currentAngle = 0;
+// Define all five zones
+const ALL_ZONES = ['Aurangabad', 'Mumbai', 'Pune', 'Nagpur', 'Nashik'];
 
-  const chartSize = {
-    sm: 'w-32 h-32',
-    md: 'w-48 h-48',
-    lg: 'w-56 h-56'
-  };
+// Helper function to remove duplicate CSA entries
+const removeDuplicateCSAs = (data) => {
+  const uniqueCSAs = new Map();
 
-  const textSize = {
-    sm: { main: 'text-sm', sub: 'text-[10px]' },
-    md: { main: 'text-lg', sub: 'text-xs' },
-    lg: { main: 'text-xl', sub: 'text-sm' }
-  };
+  data.forEach(item => {
+    const csaName = item.csa?.name;
+    if (csaName && !uniqueCSAs.has(csaName)) {
+      uniqueCSAs.set(csaName, item);
+    }
+  });
 
-  return (
-    <div className={`relative ${chartSize[size]} mx-auto`}>
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {data.map((item, index) => {
-          const percentage = (item.value / total) * 100;
-          const angle = (percentage / 100) * 360;
-          const largeArcFlag = angle > 180 ? 1 : 0;
-          
-          const x1 = 50 + 50 * Math.cos(currentAngle * Math.PI / 180);
-          const y1 = 50 + 50 * Math.sin(currentAngle * Math.PI / 180);
-          currentAngle += angle;
-          const x2 = 50 + 50 * Math.cos(currentAngle * Math.PI / 180);
-          const y2 = 50 + 50 * Math.sin(currentAngle * Math.PI / 180);
-
-          return (
-            <path
-              key={item.name}
-              d={`M50,50 L${x1},${y1} A50,50 0 ${largeArcFlag},1 ${x2},${y2} Z`}
-              fill={colors[index % colors.length]}
-              className="transition-all duration-300 hover:opacity-80 cursor-pointer"
-            />
-          );
-        })}
-        <circle cx="50" cy="50" r={size === 'sm' ? 25 : 30} fill="white" />
-      </svg>
-      
-      {/* Center text */}
-      <div className="absolute inset-0 flex items-center justify-center flex-col">
-        <span className={`${textSize[size].main} font-bold text-gray-800`}>{total}</span>
-        <span className={`${textSize[size].sub} text-gray-500`}>Total</span>
-      </div>
-    </div>
-  );
+  return Array.from(uniqueCSAs.values());
 };
 
-const BarChart = ({ data, colors, height = 'md' }) => {
-  const maxValue = Math.max(...data.map(item => item.value));
-  
-  const chartHeight = {
-    sm: 'h-48',
-    md: 'h-64',
-    lg: 'h-72'
-  };
+// Helper function to get zone from outlet data
+const getZoneFromOutlet = (outlet, zonesData) => {
+  if (!outlet || !zonesData) return 'Aurangabad';
 
-  return (
-    <div className={`w-full ${chartHeight[height]}`}>
-      <div className={`flex items-end justify-between ${height === 'sm' ? 'h-32 space-x-1' : 'h-48 space-x-2'}`}>
-        {data.map((item, index) => (
-          <div key={item.name} className="flex flex-col items-center flex-1">
-            <div className={`${height === 'sm' ? 'text-[10px]' : 'text-xs'} text-gray-500 mb-1 text-center`}>
-              {item.value > 1000 ? `${(item.value/1000).toFixed(0)}K` : item.value}
-            </div>
-            <div
-              className="w-full rounded-t transition-all duration-500 hover:opacity-80 cursor-pointer"
-              style={{
-                height: `${(item.value / maxValue) * 100}%`,
-                backgroundColor: colors[index % colors.length],
-                minHeight: height === 'sm' ? '12px' : '20px'
-              }}
-            />
-            <div className={`${height === 'sm' ? 'text-[10px]' : 'text-xs'} text-gray-600 mt-2 text-center font-medium ${height === 'sm' ? 'truncate w-full' : ''}`}>
-              {height === 'sm' && item.name.length > 4 ? item.name.slice(0,3) : item.name}
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
+  if (Array.isArray(zonesData)) {
+    const foundZone = zonesData.find(zone => {
+      if (zone.outlets && Array.isArray(zone.outlets)) {
+        return zone.outlets.some(out => out._id === outlet._id);
+      }
+      if (zone.regions && Array.isArray(zone.regions)) {
+        return zone.regions.some(region => region._id === outlet._id);
+      }
+      return false;
+    });
+    return foundZone?.name || foundZone?.zoneName || 'Aurangabad';
+  }
+
+  return 'Aurangabad';
 };
 
-const LineChart = ({ data, colors, height = 'md' }) => {
-  const maxValue = Math.max(...data.map(item => item.value));
-  const points = data.map((item, index) => {
-    const x = (index / (data.length - 1)) * 100;
-    const y = 100 - (item.value / maxValue) * 100;
-    return `${x},${y}`;
-  }).join(' ');
-
-  const chartHeight = {
-    sm: 'h-48',
-    md: 'h-64',
-    lg: 'h-72'
-  };
-
-  return (
-    <div className={`w-full ${chartHeight[height]}`}>
-      <svg viewBox="0 0 100 100" className="w-full h-full">
-        {/* Grid lines */}
-        {[0, 25, 50, 75, 100].map((y) => (
-          <line
-            key={y}
-            x1="0"
-            y1={y}
-            x2="100"
-            y2={y}
-            stroke="#e5e7eb"
-            strokeWidth="0.5"
-          />
-        ))}
-        
-        {/* Line */}
-        <polyline
-          fill="none"
-          stroke={colors[0]}
-          strokeWidth={height === 'sm' ? '1.5' : '2'}
-          points={points}
-          className="transition-all duration-500"
-        />
-        
-        {/* Points */}
-        {data.map((item, index) => {
-          const x = (index / (data.length - 1)) * 100;
-          const y = 100 - (item.value / maxValue) * 100;
-          return (
-            <circle
-              key={index}
-              cx={x}
-              cy={y}
-              r={height === 'sm' ? '1.5' : '2'}
-              fill={colors[0]}
-              className="transition-all duration-300 hover:r-3 cursor-pointer"
-            />
-          );
-        })}
-      </svg>
-    </div>
-  );
-};
-
-// Responsive Dashboard Components
-const StatCard = ({ title, value, change, icon, color, size = 'md' }) => {
+// Stat Card Component
+const StatCard = ({ title, value, change, icon, color, size = 'md', description }) => {
   const isPositive = change >= 0;
-  
+
   const sizes = {
     sm: {
       padding: 'p-3',
@@ -170,25 +64,36 @@ const StatCard = ({ title, value, change, icon, color, size = 'md' }) => {
   };
 
   const style = sizes[size];
-  
+
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${style.padding} hover:shadow-md transition-shadow duration-300 ${size === 'sm' ? 'min-w-0' : ''}`}>
+    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${style.padding} hover:shadow-md transition-all duration-300 ${size === 'sm' ? 'min-w-0' : ''}`}>
       <div className="flex items-center justify-between">
         <div className={size === 'sm' ? 'min-w-0 flex-1' : ''}>
-          <p className={`${style.title} font-medium text-gray-600 ${size === 'sm' ? 'truncate' : ''}`}>{title}</p>
-          <p className={`${style.value} font-bold text-gray-900 mt-1 ${size === 'sm' ? 'truncate' : ''}`}>{value}</p>
-          <div className={`flex items-center mt-2 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-            <svg className={`${style.icon} ${isPositive ? 'text-green-500' : 'text-red-500'}`} fill="currentColor" viewBox="0 0 20 20">
-              {isPositive ? (
-                <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-              ) : (
-                <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
-              )}
-            </svg>
-            <span className={`${style.change} font-medium ml-1`}>
-              {isPositive ? '+' : ''}{change}%
-            </span>
-          </div>
+          <p className={`${style.title} font-medium text-gray-600 ${size === 'sm' ? 'truncate' : ''}`}>
+            {title}
+          </p>
+          <p className={`${style.value} font-bold text-gray-900 mt-1 ${size === 'sm' ? 'truncate' : ''}`}>
+            {value}
+          </p>
+          {change !== undefined && (
+            <div className={`flex items-center mt-2 ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
+              <svg className={`${style.icon} ${isPositive ? 'text-green-500' : 'text-red-500'}`} fill="currentColor" viewBox="0 0 20 20">
+                {isPositive ? (
+                  <path fillRule="evenodd" d="M5.293 9.707a1 1 0 010-1.414l4-4a1 1 0 011.414 0l4 4a1 1 0 01-1.414 1.414L11 7.414V15a1 1 0 11-2 0V7.414L6.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                ) : (
+                  <path fillRule="evenodd" d="M14.707 10.293a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 111.414-1.414L9 12.586V5a1 1 0 012 0v7.586l2.293-2.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                )}
+              </svg>
+              <span className={`${style.change} font-medium ml-1`}>
+                {isPositive ? '+' : ''}{change}%
+              </span>
+            </div>
+          )}
+          {description && (
+            <p className={`${style.title} text-gray-500 mt-1 ${size === 'sm' ? 'truncate' : ''}`}>
+              {description}
+            </p>
+          )}
         </div>
         <div className={`rounded-full ${color} bg-opacity-10 ${style.iconContainer} ${size === 'sm' ? 'ml-2 flex-shrink-0' : ''}`}>
           {React.cloneElement(icon, { className: `${icon.props.className} ${style.icon}` })}
@@ -198,247 +103,757 @@ const StatCard = ({ title, value, change, icon, color, size = 'md' }) => {
   );
 };
 
-const ChartCard = ({ title, children, action, size = 'md' }) => {
-  const sizes = {
-    sm: {
-      padding: 'p-4',
-      title: 'text-sm',
-      action: 'text-xs',
-      margin: 'mb-4'
-    },
-    md: {
-      padding: 'p-6',
-      title: 'text-lg',
-      action: 'text-sm',
-      margin: 'mb-6'
+// Training Comparison Cards Component
+const TrainingComparisonCards = ({ data, zoneName }) => {
+  const trainingData = useMemo(() => {
+    if (!data || data.length === 0) {
+      return {
+        preTraining: { count: 0, metrics: {} },
+        postTraining: { count: 0, metrics: {} }
+      };
     }
+
+    const preTraining = data.filter(item => item.uploadType === 'preTraining');
+    const postTraining = data.filter(item => item.uploadType === 'postTraining');
+
+    const calculateMetrics = (items) => {
+      return items.reduce((acc, item) => {
+        if (item.metrics) {
+          Object.keys(item.metrics).forEach(key => {
+            acc[key] = (acc[key] || 0) + (item.metrics[key] || 0);
+          });
+        }
+        return acc;
+      }, {});
+    };
+
+    return {
+      preTraining: {
+        count: preTraining.length,
+        metrics: calculateMetrics(preTraining)
+      },
+      postTraining: {
+        count: postTraining.length,
+        metrics: calculateMetrics(postTraining)
+      }
+    };
+  }, [data]);
+
+  const getImprovement = (preValue, postValue) => {
+    if (!preValue || preValue === 0) return postValue > 0 ? 100 : 0;
+    return ((postValue - preValue) / preValue * 100).toFixed(1);
   };
 
-  const style = sizes[size];
+  const formatValue = (value, key) => {
+    if (key.includes('Petrol') || key.includes('Diesel')) {
+      return `${(value / 1000).toFixed(1)} KL`;
+    }
+    return value?.toLocaleString() || '0';
+  };
+
+  const keyMetrics = [
+    { key: 'normalPetrol', label: 'Normal Petrol', icon: '⛽' },
+    { key: 'normalDiesel', label: 'Normal Diesel', icon: '⛽' },
+    { key: 'premiumPetrol', label: 'Premium Petrol', icon: '⭐' },
+    { key: 'hpPay', label: 'HP Pay', icon: '💳' },
+    { key: 'googleReviews', label: 'Google Reviews', icon: '⭐' },
+    { key: 'newCustomers', label: 'New Customers', icon: '👥' }
+  ];
 
   return (
-    <div className={`bg-white rounded-xl shadow-sm border border-gray-200 ${style.padding} hover:shadow-md transition-shadow duration-300`}>
-      <div className={`flex items-center justify-between ${style.margin}`}>
-        <h3 className={`${style.title} font-semibold text-gray-900 ${size === 'sm' ? 'truncate' : ''}`}>{title}</h3>
-        {action && (
-          <button className={`${style.action} text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 ${size === 'sm' ? 'flex-shrink-0 ml-2' : ''}`}>
-            {size === 'sm' ? 'View' : action}
-          </button>
-        )}
+    <div className="mb-8">
+      <h3 className="text-xl font-bold text-gray-800 mb-6">Training Performance Comparison</h3>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Pre-Training Card */}
+        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 shadow-lg border border-blue-200">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-bold text-blue-800">Pre-Training Data</h4>
+            <div className="bg-blue-100 text-blue-800 px-3 py-1 rounded-full text-sm font-medium">
+              {trainingData.preTraining.count} Records
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {keyMetrics.map((metric, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-blue-100">
+                <div className="flex items-center space-x-3">
+                  <span className="text-lg">{metric.icon}</span>
+                  <span className="text-sm font-medium text-gray-700">{metric.label}</span>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-gray-900">
+                    {formatValue(trainingData.preTraining.metrics[metric.key], metric.key)}
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {trainingData.preTraining.count === 0 && (
+            <div className="text-center py-6 text-gray-500">
+              <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <p>No pre-training data available</p>
+            </div>
+          )}
+        </div>
+
+        {/* Post-Training Card */}
+        <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 shadow-lg border border-green-200">
+          <div className="flex items-center justify-between mb-4">
+            <h4 className="text-lg font-bold text-green-800">Post-Training Data</h4>
+            <div className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
+              {trainingData.postTraining.count} Records
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {keyMetrics.map((metric, index) => (
+              <div key={index} className="flex items-center justify-between p-3 bg-white rounded-lg border border-green-100">
+                <div className="flex items-center space-x-3">
+                  <span className="text-lg">{metric.icon}</span>
+                  <span className="text-sm font-medium text-gray-700">{metric.label}</span>
+                </div>
+                <div className="text-right">
+                  <div className="font-bold text-gray-900">
+                    {formatValue(trainingData.postTraining.metrics[metric.key], metric.key)}
+                  </div>
+                  {trainingData.preTraining.metrics[metric.key] > 0 && (
+                    <div className={`text-xs font-medium ${trainingData.postTraining.metrics[metric.key] > trainingData.preTraining.metrics[metric.key]
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                      }`}>
+                      {getImprovement(trainingData.preTraining.metrics[metric.key], trainingData.postTraining.metrics[metric.key])}%
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {trainingData.postTraining.count === 0 && (
+            <div className="text-center py-6 text-gray-500">
+              <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              <p>No post-training data available</p>
+            </div>
+          )}
+        </div>
       </div>
-      {children}
+
+      {/* Improvement Summary */}
+      {(trainingData.preTraining.count > 0 && trainingData.postTraining.count > 0) && (
+        <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+          <h4 className="text-lg font-bold text-gray-800 mb-4">Training Impact Summary</h4>
+          <div
+            className="
+    grid
+    grid-cols-1
+    xs:grid-cols-2
+    md:grid-cols-3
+    lg:grid-cols-6
+    gap-3 sm:gap-4
+  "
+          >
+            {keyMetrics.map((metric, index) => {
+              const improvement = getImprovement(
+                trainingData.preTraining.metrics[metric.key],
+                trainingData.postTraining.metrics[metric.key]
+              );
+              const isPositive = parseFloat(improvement) > 0;
+
+              return (
+                <div
+                  key={index}
+                  className="
+          text-center
+          p-3 sm:p-4
+          bg-gray-50
+          rounded-xl
+          hover:shadow-md
+          transition-shadow
+        "
+                >
+                  {/* Icon */}
+                  <div className="text-xl sm:text-2xl mb-1 sm:mb-2">
+                    {metric.icon}
+                  </div>
+
+                  {/* Improvement Value */}
+                  <div
+                    className={`
+            font-bold
+            text-base sm:text-lg
+            ${isPositive ? 'text-green-600' : 'text-red-600'}
+            mb-0.5 sm:mb-1
+          `}
+                  >
+                    {isPositive ? '+' : ''}
+                    {improvement}%
+                  </div>
+
+                  {/* Label */}
+                  <div className="text-[10px] sm:text-xs text-gray-600 font-medium">
+                    {metric.label}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+        </div>
+      )}
     </div>
   );
 };
 
-// Main Responsive Graph Component
-function Graph() {
-  // Dummy data for charts
-  const outletStatusData = [
-    { name: 'Active', value: 75 },
-    { name: 'Inactive', value: 15 },
-    { name: 'Maintenance', value: 10 }
-  ];
-
-  const revenueData = [
-    { name: 'Jan', value: 45000 },
-    { name: 'Feb', value: 52000 },
-    { name: 'Mar', value: 48000 },
-    { name: 'Apr', value: 61000 },
-    { name: 'May', value: 55000 },
-    { name: 'Jun', value: 72000 }
-  ];
-
-  const zonePerformanceData = [
-    { name: 'North', value: 85 },
-    { name: 'South', value: 72 },
-    { name: 'East', value: 68 },
-    { name: 'West', value: 79 }
-  ];
-
-  const customerGrowthData = [
-    { name: 'Q1', value: 1200 },
-    { name: 'Q2', value: 1800 },
-    { name: 'Q3', value: 2200 },
-    { name: 'Q4', value: 3100 }
-  ];
-
-  const chartColors = ['#3B82F6', '#10B981', '#EF4444', '#F59E0B', '#8B5CF6'];
-
-  // Statistics data
+// Data Summary Cards Component
+const ZoneDataCards = ({ metrics, size = 'md', zoneName }) => {
   const stats = [
     {
       title: 'Total Outlets',
-      value: '142',
-      change: 12,
+      value: metrics.totalOutlets.toString(),
+      change: 0,
       icon: (
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
       ),
-      color: 'bg-blue-100'
+      color: 'bg-blue-100',
+      description: `Retail outlets in ${zoneName}`
     },
     {
-      title: 'Active Zones',
-      value: '8',
-      change: 5,
-      icon: (
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7" />
-        </svg>
-      ),
-      color: 'bg-green-100'
-    },
-    {
-      title: 'Monthly Revenue',
-      value: '$72K',
-      change: 18,
-      icon: (
-        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
-        </svg>
-      ),
-      color: 'bg-purple-100'
-    },
-    {
-      title: 'Customer Visits',
-      value: '12.4K',
-      change: -2,
+      title: 'Total CSAs',
+      value: metrics.totalCSAs.toString(),
+      change: 0,
       icon: (
         <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
         </svg>
       ),
-      color: 'bg-orange-100'
+      color: 'bg-green-100',
+      description: 'Customer service attendants'
+    },
+    {
+      title: 'Total Records',
+      value: metrics.totalRecords.toString(),
+      change: 0,
+      icon: (
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4" />
+        </svg>
+      ),
+      color: 'bg-purple-100',
+      description: 'All data entries'
+    },
+    {
+      title: 'Petrol Sales',
+      value: `${metrics.petrolSalesKL} KL`,
+      change: 0,
+      icon: (
+        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 15a4 4 0 004 4h9a5 5 0 10-.1-9.999 5.002 5.002 0 10-9.78 2.096A4.001 4.001 0 003 15z" />
+        </svg>
+      ),
+      color: 'bg-yellow-100',
+      description: 'Total volume sold'
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="w-full mx-auto">
-        {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-bold text-gray-900">Outlet Analytics Dashboard</h1>
-          <p className="text-gray-600 mt-2">Comprehensive overview of your outlet performance and metrics</p>
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      {stats.map((stat, index) => (
+        <StatCard
+          key={index}
+          title={stat.title}
+          value={stat.value}
+          change={stat.change}
+          icon={stat.icon}
+          color={stat.color}
+          description={stat.description}
+          size="md"
+        />
+      ))}
+    </div>
+  );
+};
+
+// CSA List Component
+const CSAList = ({ data, zoneName }) => {
+  const uniqueCSAs = removeDuplicateCSAs(data || []);
+
+  if (uniqueCSAs.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <div className="text-center text-gray-500 py-8">
+          <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197m13.5-9a2.5 2.5 0 11-5 0 2.5 2.5 0 015 0z" />
+          </svg>
+          <h4 className="text-lg font-medium text-gray-600 mb-1">No CSA Data Available</h4>
+          <p className="text-sm text-gray-500">No customer service attendants found for {zoneName}</p>
         </div>
+      </div>
+    );
+  }
 
-        {/* Desktop View - Hidden on mobile */}
-        <div className="hidden sm:block">
-          {/* Stats Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            {stats.map((stat, index) => (
-              <StatCard
-                key={index}
-                title={stat.title}
-                value={stat.value}
-                change={stat.change}
-                icon={stat.icon}
-                color={stat.color}
-                size="md"
-              />
-            ))}
-          </div>
+  return (
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">
+        Customer Service Attendants ({uniqueCSAs.length})
+      </h3>
 
-          {/* Charts Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Outlet Status Pie Chart */}
-            <ChartCard title="Outlet Status Distribution" action="View Details" size="md">
-              <div className="flex flex-col md:flex-row items-center">
-                <PieChart data={outletStatusData} colors={chartColors} size="md" />
-                <div className="mt-4 md:mt-0 md:ml-6 space-y-3 flex-1">
-                  {outletStatusData.map((item, index) => (
-                    <div key={item.name} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                      <div className="flex items-center">
-                        <div
-                          className="w-3 h-3 rounded-full mr-3"
-                          style={{ backgroundColor: chartColors[index] }}
-                        ></div>
-                        <span className="text-sm font-medium text-gray-700">{item.name}</span>
-                      </div>
-                      <span className="text-sm font-bold text-gray-900">{item.value}%</span>
-                    </div>
-                  ))}
-                </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+        {uniqueCSAs.map((csa, index) => (
+          <div
+            key={index}
+            className="bg-gray-50 rounded-xl p-3 sm:p-4 border border-gray-200 hover:shadow-md transition-shadow"
+          >
+            {/* Top Row */}
+            <div className="flex items-center space-x-3">
+
+              {/* Avatar */}
+              <div className="flex-shrink-0 w-9 h-9 sm:w-10 sm:h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <span className="text-blue-600 font-semibold text-sm">
+                  {csa.csa?.name?.charAt(0) || "C"}
+                </span>
               </div>
-            </ChartCard>
 
-            {/* Revenue Bar Chart */}
-            <ChartCard title="Monthly Revenue Trends" action="View Report" size="md">
-              <BarChart data={revenueData} colors={chartColors} height="md" />
-            </ChartCard>
-          </div>
+              {/* Name + Outlet */}
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate leading-tight">
+                  {csa.csa?.name || "Unknown CSA"}
+                </p>
+                <p className="text-xs text-gray-500 truncate leading-tight">
+                  {csa.outlet?.name || "Unknown Outlet"}
+                </p>
 
-          {/* Additional Charts Row */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-            {/* Zone Performance */}
-            <ChartCard title="Zone Performance Score" action="Compare" size="md">
-              <BarChart data={zonePerformanceData} colors={chartColors} height="md" />
-            </ChartCard>
-
-            {/* Customer Growth */}
-            <ChartCard title="Customer Growth Quarterly" action="Analyze" size="md">
-              <LineChart data={customerGrowthData} colors={['#8B5CF6']} height="md" />
-            </ChartCard>
-          </div>
-        </div>
-
-        {/* Mobile View - Only shows on small screens */}
-        <div className="sm:hidden">
-          <div className="space-y-4">
-            {/* Compact Stats for Mobile */}
-            <div className="grid grid-cols-2 gap-2">
-              {stats.map((stat, index) => (
-                <StatCard
-                  key={index}
-                  title={stat.title}
-                  value={stat.value}
-                  change={stat.change}
-                  icon={stat.icon}
-                  color={stat.color}
-                  size="sm"
-                />
-              ))}
+                {/* Badge */}
+                <span
+                  className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full ${csa.uploadType === "preTraining"
+                      ? "bg-blue-100 text-blue-800"
+                      : csa.uploadType === "postTraining"
+                        ? "bg-green-100 text-green-800"
+                        : "bg-gray-100 text-gray-800"
+                    }`}
+                >
+                  {csa.uploadType || "No Type"}
+                </span>
+              </div>
             </div>
 
-            {/* Compact Charts for Mobile */}
-            <ChartCard title="Outlet Status" action="View" size="sm">
-              <div className="flex flex-col items-center">
-                <PieChart data={outletStatusData.map(item => 
-                  ({ ...item, name: item.name.length > 4 ? item.name.slice(0,3) : item.name })
-                )} colors={chartColors} size="sm" />
-                <div className="mt-3 space-y-1 w-full">
-                  {outletStatusData.map((item, index) => (
-                    <div key={item.name} className="flex items-center justify-between p-2 bg-gray-50 rounded text-xs">
-                      <div className="flex items-center">
-                        <div
-                          className="w-2 h-2 rounded-full mr-2"
-                          style={{ backgroundColor: chartColors[index] }}
-                        ></div>
-                        <span className="font-medium text-gray-700 truncate">{item.name}</span>
-                      </div>
-                      <span className="font-bold text-gray-900">{item.value}%</span>
-                    </div>
-                  ))}
+            {/* Metrics */}
+            {csa.metrics && (
+              <div className="mt-3 grid grid-cols-2 gap-2 text-center">
+                <div className="bg-white rounded-md p-2 shadow-sm">
+                  <div className="font-semibold text-gray-900 text-sm">
+                    {csa.metrics.normalPetrol || 0}
+                  </div>
+                  <div className="text-[10px] text-gray-500">Petrol (L)</div>
+                </div>
+                <div className="bg-white rounded-md p-2 shadow-sm">
+                  <div className="font-semibold text-gray-900 text-sm">
+                    {csa.metrics.normalDiesel || 0}
+                  </div>
+                  <div className="text-[10px] text-gray-500">Diesel (L)</div>
                 </div>
               </div>
-            </ChartCard>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
 
-            <ChartCard title="Revenue Trends" action="View" size="sm">
-              <BarChart data={revenueData} colors={chartColors} height="sm" />
-            </ChartCard>
+  );
+};
 
-            <ChartCard title="Zone Performance" action="View" size="sm">
-              <BarChart data={zonePerformanceData} colors={chartColors} height="sm" />
-            </ChartCard>
+// Outlet List Component
+const OutletList = ({ data, zoneName }) => {
+  const outlets = useMemo(() => {
+    if (!data) return [];
+    const uniqueOutlets = new Map();
+    data.forEach(item => {
+      if (item.outlet?.name) {
+        uniqueOutlets.set(item.outlet.name, item.outlet);
+      }
+    });
+    return Array.from(uniqueOutlets.values());
+  }, [data]);
 
-            <ChartCard title="Customer Growth" action="View" size="sm">
-              <LineChart data={customerGrowthData} colors={['#8B5CF6']} height="sm" />
-            </ChartCard>
+  if (outlets.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <div className="text-center text-gray-500 py-8">
+          <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+          </svg>
+          <h4 className="text-lg font-medium text-gray-600 mb-1">No Outlet Data Available</h4>
+          <p className="text-sm text-gray-500">No retail outlets found for {zoneName}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+      <h3 className="text-xl font-bold text-gray-800 mb-6">
+        Retail Outlets ({outlets.length})
+      </h3>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {outlets.map((outlet, index) => (
+          <div key={index} className="bg-gray-50 rounded-lg p-4 border border-gray-200 hover:shadow-md transition-shadow">
+            <div className="flex items-center space-x-3">
+              <div className="flex-shrink-0 w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                <span className="text-green-600 font-semibold text-sm">
+                  {outlet.name?.charAt(0) || 'O'}
+                </span>
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-medium text-gray-900 truncate">
+                  {outlet.name || 'Unknown Outlet'}
+                </p>
+                <p className="text-sm text-gray-500 truncate">
+                  {zoneName}
+                </p>
+                <p className="text-xs text-gray-400 mt-1">
+                  {outlet.address || 'No address available'}
+                </p>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// Metrics Summary Component
+const MetricsSummary = ({ data, zoneName }) => {
+  const metrics = useMemo(() => {
+    if (!data || data.length === 0) {
+      return {
+        normalPetrol: 0,
+        normalDiesel: 0,
+        premiumPetrol: 0,
+        hpPay: 0,
+        googleReviews: 0,
+        newCustomers: 0,
+        complaintsResolved: 0,
+        lubeSales: 0,
+        additiveSales: 0
+      };
+    }
+
+    return data.reduce((acc, item) => {
+      if (item.metrics) {
+        Object.keys(item.metrics).forEach(key => {
+          acc[key] = (acc[key] || 0) + (item.metrics[key] || 0);
+        });
+      }
+      return acc;
+    }, {});
+  }, [data]);
+
+  const metricCards = [
+    {
+      title: 'Normal Petrol',
+      value: `${(metrics.normalPetrol / 1000).toFixed(1)} KL`,
+      icon: '⛽',
+      color: 'bg-yellow-50',
+      textColor: 'text-yellow-700'
+    },
+    {
+      title: 'Normal Diesel',
+      value: `${(metrics.normalDiesel / 1000).toFixed(1)} KL`,
+      icon: '⛽',
+      color: 'bg-red-50',
+      textColor: 'text-red-700'
+    },
+    {
+      title: 'Premium Petrol',
+      value: `${(metrics.premiumPetrol / 1000).toFixed(1)} KL`,
+      icon: '⭐',
+      color: 'bg-purple-50',
+      textColor: 'text-purple-700'
+    },
+    {
+      title: 'HP Pay',
+      value: metrics.hpPay?.toLocaleString() || '0',
+      icon: '💳',
+      color: 'bg-green-50',
+      textColor: 'text-green-700'
+    },
+    {
+      title: 'Google Reviews',
+      value: metrics.googleReviews?.toLocaleString() || '0',
+      icon: '⭐',
+      color: 'bg-blue-50',
+      textColor: 'text-blue-700'
+    },
+    {
+      title: 'New Customers',
+      value: metrics.newCustomers?.toLocaleString() || '0',
+      icon: '👥',
+      color: 'bg-indigo-50',
+      textColor: 'text-indigo-700'
+    },
+    {
+      title: 'Complaints Resolved',
+      value: metrics.complaintsResolved?.toLocaleString() || '0',
+      icon: '✅',
+      color: 'bg-teal-50',
+      textColor: 'text-teal-700'
+    },
+    {
+      title: 'Lube Sales',
+      value: metrics.lubeSales?.toLocaleString() || '0',
+      icon: '🛢️',
+      color: 'bg-orange-50',
+      textColor: 'text-orange-700'
+    },
+    {
+      title: 'Additive Sales',
+      value: metrics.additiveSales?.toLocaleString() || '0',
+      icon: '🧪',
+      color: 'bg-pink-50',
+      textColor: 'text-pink-700'
+    }
+  ];
+
+  if (data.length === 0) {
+    return (
+      <div className="bg-white rounded-2xl p-6 shadow-lg border border-gray-100">
+        <div className="text-center text-gray-500 py-8">
+          <svg className="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+          </svg>
+          <h4 className="text-lg font-medium text-gray-600 mb-1">No Metrics Data Available</h4>
+          <p className="text-sm text-gray-500">No performance metrics found for {zoneName}</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border border-gray-100">
+      <h3 className="text-lg sm:text-xl font-bold text-gray-800 mb-4 sm:mb-6">
+        Performance Metrics Summary
+      </h3>
+
+      <div className="
+      grid 
+      grid-cols-1 
+      xs:grid-cols-2 
+      md:grid-cols-3 
+      lg:grid-cols-5 
+      gap-3 sm:gap-4
+    "
+      >
+        {metricCards.map((metric, index) => (
+          <div
+            key={index}
+            className={`${metric.color} rounded-xl p-3 sm:p-4 text-center hover:shadow-md transition-shadow`}
+          >
+            {/* Icon */}
+            <div className="text-xl sm:text-2xl mb-1 sm:mb-2">
+              {metric.icon}
+            </div>
+
+            {/* Value */}
+            <div className={`text-base sm:text-lg font-bold ${metric.textColor} mb-0.5 sm:mb-1`}>
+              {metric.value}
+            </div>
+
+            {/* Title */}
+            <div className="text-[10px] sm:text-xs text-gray-600 font-medium">
+              {metric.title}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+
+  );
+};
+
+// Main Dashboard Component
+export default function MultiZoneDashboard() {
+  const dispatch = useDispatch();
+  const { data: performanceData, loading, error } = useSelector((state) => state.performance);
+  const { zones: zonesData, loading: zonesLoading } = useSelector((state) => state.zones);
+
+  const [selectedZone, setSelectedZone] = useState('Aurangabad');
+
+  // Filter data for selected zone
+  const zoneData = useMemo(() => {
+    if (!performanceData) return [];
+    return performanceData.filter(item => {
+      const zone = getZoneFromOutlet(item.outlet, zonesData);
+      return zone === selectedZone;
+    });
+  }, [performanceData, zonesData, selectedZone]);
+
+  // Calculate metrics for selected zone
+  const metrics = useMemo(() => {
+    if (!zoneData || zoneData.length === 0) {
+      return {
+        totalOutlets: 0,
+        totalCSAs: 0,
+        totalRecords: 0,
+        petrolSalesKL: '0.0',
+        dieselSalesKL: '0.0',
+        hpPayTransactions: 0,
+        googleReviews: 0,
+        newCustomers: 0
+      };
+    }
+
+    const outlets = new Set(zoneData.map(item => item.outlet?.name).filter(Boolean));
+    const csas = new Set(zoneData.map(item => item.csa?.name).filter(Boolean));
+
+    const totalPetrol = zoneData.reduce((sum, item) => sum + (item.metrics?.normalPetrol || 0), 0);
+    const totalDiesel = zoneData.reduce((sum, item) => sum + (item.metrics?.normalDiesel || 0), 0);
+    const totalHpPay = zoneData.reduce((sum, item) => sum + (item.metrics?.hpPay || 0), 0);
+    const totalGoogleReviews = zoneData.reduce((sum, item) => sum + (item.metrics?.googleReviews || 0), 0);
+    const totalNewCustomers = zoneData.reduce((sum, item) => sum + (item.metrics?.newCustomers || 0), 0);
+
+    return {
+      totalOutlets: outlets.size,
+      totalCSAs: csas.size,
+      totalRecords: zoneData.length,
+      petrolSalesKL: (totalPetrol / 1000).toFixed(1),
+      dieselSalesKL: (totalDiesel / 1000).toFixed(1),
+      hpPayTransactions: totalHpPay,
+      googleReviews: totalGoogleReviews,
+      newCustomers: totalNewCustomers
+    };
+  }, [zoneData]);
+
+  // Fetch data on component mount
+  useEffect(() => {
+    dispatch(fetchPerformanceData());
+    dispatch(fetchZonesData());
+  }, [dispatch]);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <h2 className="text-xl font-semibold text-gray-700">Loading Zone Data...</h2>
+        </div>
+      </div>
+    );
+  }
+
+  const hasDataForSelectedZone = zoneData.length > 0;
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 p-4 sm:p-8">
+      <div className="w-full mx-auto">
+
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
+            Multi-Zone Performance Dashboard
+          </h1>
+          <p className="text-gray-600">
+            View performance data across all zones
+          </p>
+        </div>
+
+        {/* Zone Selector */}
+        <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-200 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="block text-sm font-semibold text-gray-700 mb-3">
+                Select Zone
+              </label>
+              <select
+                value={selectedZone}
+                onChange={(e) => setSelectedZone(e.target.value)}
+                className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+              >
+                {ALL_ZONES.map(zone => (
+                  <option key={zone} value={zone}>
+                    {zone}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex items-end">
+              <div className="text-sm text-gray-600 bg-gray-100 px-4 py-3 rounded-lg w-full">
+                <div><strong>{ALL_ZONES.length}</strong> zones available</div>
+                <div className="mt-1 text-blue-600 font-semibold">
+                  {zoneData.length} records in {selectedZone}
+                </div>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Show data or no data message */}
+        {!performanceData || performanceData.length === 0 ? (
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 text-center">
+            <div className="max-w-md mx-auto">
+              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No Data Available</h3>
+              <p className="text-gray-600">
+                No performance data found in the database.
+              </p>
+            </div>
+          </div>
+        ) : hasDataForSelectedZone ? (
+          <>
+            {/* Training Comparison Cards */}
+            <TrainingComparisonCards data={zoneData} zoneName={selectedZone} />
+
+            {/* Zone Data Cards */}
+            <ZoneDataCards metrics={metrics} size="md" zoneName={selectedZone} />
+
+            {/* Metrics Summary */}
+            <div className="mb-8">
+              <MetricsSummary data={zoneData} zoneName={selectedZone} />
+            </div>
+
+            {/* CSA List */}
+            <div className="mb-8">
+              <CSAList data={zoneData} zoneName={selectedZone} />
+            </div>
+
+            {/* Outlet List */}
+            <div className="mb-8">
+              <OutletList data={zoneData} zoneName={selectedZone} />
+            </div>
+          </>
+        ) : (
+          <div className="bg-white rounded-2xl p-8 shadow-lg border border-gray-100 text-center">
+            <div className="max-w-md mx-auto">
+              <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.082 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-semibold text-gray-800 mb-2">No Data for {selectedZone}</h3>
+              <p className="text-gray-600 mb-6">
+                No performance data found for <span className="font-semibold">{selectedZone}</span> zone.
+              </p>
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <p className="text-sm text-gray-500">
+                  Please select a different zone from the dropdown above. Currently, only Aurangabad has data available.
+                </p>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );
 }
-
-export default Graph;

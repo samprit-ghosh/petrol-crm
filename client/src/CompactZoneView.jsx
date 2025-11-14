@@ -234,14 +234,15 @@ const CompactZoneView = () => {
 
   return (
 <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full mx-auto">
+
   {/* Header */}
   <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
     <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 text-center sm:text-left justify-center sm:justify-start">
-      {/* Hide icon on mobile */}
       <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
       Zone Outlets
     </h2>
 
+    {/* Zone Selector */}
     {loading ? (
       <div className="text-sm sm:text-base text-gray-500 text-center sm:text-left">
         Loading zones...
@@ -249,11 +250,27 @@ const CompactZoneView = () => {
     ) : (
       zoneNames.length > 0 && (
         <div className="w-full sm:w-auto">
-          <ZoneSelector
-            value={selectedZone}
-            onChange={setSelectedZone}
-            zones={availableZones}
-          />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 w-full">
+
+            {/* Mobile Title */}
+            <div className="text-sm font-medium text-gray-700 text-center sm:hidden">
+              Select Zone
+            </div>
+
+            {/* Desktop Label */}
+
+
+            {/* Selector */}
+            <div className="w-full sm:w-auto">
+              <ZoneSelector
+                value={selectedZone}
+                onChange={setSelectedZone}
+                zones={availableZones}
+                className="w-full sm:w-52"
+              />
+            </div>
+
+          </div>
         </div>
       )
     )}
@@ -263,7 +280,6 @@ const CompactZoneView = () => {
   {zoneNames.length > 0 && (
     <div className="mb-3 sm:mb-4 text-center sm:text-left">
       <h3 className="text-base sm:text-lg font-semibold text-gray-800 capitalize mb-1 flex items-center justify-center sm:justify-start gap-2">
-        {/* Hide icon on mobile */}
         <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
         {selectedZone}
       </h3>
@@ -292,13 +308,14 @@ const CompactZoneView = () => {
             className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-sm transition"
           >
             <div>
-              <h4 className="text-sm sm:text-base font-semibold text-gray-900">{outlet.name}</h4>
+              <h4 className="text-sm sm:text-base font-semibold text-gray-900">
+                {outlet.name}
+              </h4>
               <p className="text-xs sm:text-sm text-gray-600">
                 Code: {outlet.code} • {outlet.footfallType}
               </p>
             </div>
 
-            {/* Active badge — visible at bottom on mobile, right on desktop */}
             <div className="mt-2 sm:mt-0">
               <span className="inline-block px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full text-center w-full sm:w-auto">
                 Active
@@ -328,7 +345,9 @@ const CompactZoneView = () => {
     <span>Manage All Outlets</span>
     <span>➡️</span>
   </button>
+
 </div>
+
 
 
   );
