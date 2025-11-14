@@ -12,7 +12,7 @@ const getZoneIcon = (zoneName) => {
     'west': '🌄',
     'default': '🏢'
   };
-  
+
   const lowerZone = zoneName.toLowerCase();
   if (lowerZone.includes('north')) return zoneIcons.north;
   if (lowerZone.includes('south')) return zoneIcons.south;
@@ -44,7 +44,7 @@ const ZoneSelector = ({ value, onChange, zones }) => {
 /* Outlet item with enhanced information */
 const OutletItem = React.memo(({ outlet }) => {
   const statusClasses = "bg-green-100 text-green-800 border border-green-200";
-  
+
   const getFootfallIcon = (footfallType) => {
     const icons = {
       'urban': '🏙️',
@@ -78,7 +78,7 @@ const OutletItem = React.memo(({ outlet }) => {
 /* List with empty state */
 const OutletList = ({ outlets }) => {
   const safeOutlets = Array.isArray(outlets) ? outlets : [];
-  
+
   if (safeOutlets.length === 0) {
     return (
       <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
@@ -106,22 +106,20 @@ const Pagination = ({ currentPage, totalPages, onPageChange }) => (
       <button
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className={`px-3 py-1 border rounded-lg text-sm font-medium ${
-          currentPage === 1
+        className={`px-3 py-1 border rounded-lg text-sm font-medium ${currentPage === 1
             ? "text-gray-400 border-gray-200 cursor-not-allowed"
             : "text-blue-600 border-gray-300 hover:bg-blue-50"
-        }`}
+          }`}
       >
         Prev
       </button>
       <button
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className={`px-3 py-1 border rounded-lg text-sm font-medium ${
-          currentPage === totalPages
+        className={`px-3 py-1 border rounded-lg text-sm font-medium ${currentPage === totalPages
             ? "text-gray-400 border-gray-200 cursor-not-allowed"
             : "text-blue-600 border-gray-300 hover:bg-blue-50"
-        }`}
+          }`}
       >
         Next
       </button>
@@ -148,13 +146,13 @@ const LoadingSkeleton = () => (
 const CompactZoneView = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  
+
   const { zones, loading, error } = useSelector((state) => state.zones);
 
   // Get available zones or default to empty object
   const availableZones = zones || {};
   const zoneNames = Object.keys(availableZones);
-  
+
   const defaultZone = useMemo(() => zoneNames[0] || "", [zoneNames]);
   const [selectedZone, setSelectedZone] = useState(defaultZone);
   const [currentPage, setCurrentPage] = useState(1);
@@ -191,7 +189,7 @@ const CompactZoneView = () => {
 
   // Safely calculate pagination
   const totalPages = Math.max(1, Math.ceil(outlets.length / itemsPerPage));
-  
+
   // Safely paginate outlets
   const paginatedOutlets = useMemo(() => {
     if (!Array.isArray(outlets) || outlets.length === 0) return [];
@@ -233,120 +231,120 @@ const CompactZoneView = () => {
   }
 
   return (
-<div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full mx-auto">
+    <div className="bg-white rounded-xl shadow-md border border-gray-200 p-4 sm:p-6 w-full mx-auto">
 
-  {/* Header */}
-  <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
-    <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 text-center sm:text-left justify-center sm:justify-start">
-      <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
-      Zone Outlets
-    </h2>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 gap-3 sm:gap-4">
+        <h2 className="text-lg sm:text-xl font-bold text-gray-900 flex items-center gap-2 text-center sm:text-left justify-center sm:justify-start">
+          <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
+          Zone Outlets
+        </h2>
 
-    {/* Zone Selector */}
-    {loading ? (
-      <div className="text-sm sm:text-base text-gray-500 text-center sm:text-left">
-        Loading zones...
-      </div>
-    ) : (
-      zoneNames.length > 0 && (
-        <div className="w-full sm:w-auto">
-          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 w-full">
-
-            {/* Mobile Title */}
-            <div className="text-sm font-medium text-gray-700 text-center sm:hidden">
-              Select Zone
-            </div>
-
-            {/* Desktop Label */}
-
-
-            {/* Selector */}
+        {/* Zone Selector */}
+        {loading ? (
+          <div className="text-sm sm:text-base text-gray-500 text-center sm:text-left">
+            Loading zones...
+          </div>
+        ) : (
+          zoneNames.length > 0 && (
             <div className="w-full sm:w-auto">
-              <ZoneSelector
-                value={selectedZone}
-                onChange={setSelectedZone}
-                zones={availableZones}
-                className="w-full sm:w-52"
-              />
-            </div>
+              <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-3 w-full">
 
+                {/* Mobile Title */}
+                <div className="text-sm font-medium text-gray-700 text-center sm:hidden">
+                  Select Zone
+                </div>
+
+                {/* Desktop Label */}
+
+
+                {/* Selector */}
+                <div className="w-full sm:w-auto">
+                  <ZoneSelector
+                    value={selectedZone}
+                    onChange={setSelectedZone}
+                    zones={availableZones}
+                    className="w-full sm:w-52"
+                  />
+                </div>
+
+              </div>
+            </div>
+          )
+        )}
+      </div>
+
+      {/* Zone Info */}
+      {zoneNames.length > 0 && (
+        <div className="mb-3 sm:mb-4 text-center sm:text-left">
+          <h3 className="text-base sm:text-lg font-semibold text-gray-800 capitalize mb-1 flex items-center justify-center sm:justify-start gap-2">
+            <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
+            {selectedZone}
+          </h3>
+          <div className="text-xs sm:text-sm text-gray-500">
+            {outlets.length} outlet{outlets.length !== 1 ? "s" : ""} in this zone
           </div>
         </div>
-      )
-    )}
-  </div>
-
-  {/* Zone Info */}
-  {zoneNames.length > 0 && (
-    <div className="mb-3 sm:mb-4 text-center sm:text-left">
-      <h3 className="text-base sm:text-lg font-semibold text-gray-800 capitalize mb-1 flex items-center justify-center sm:justify-start gap-2">
-        <span className="hidden sm:inline">{getZoneIcon(selectedZone)}</span>
-        {selectedZone}
-      </h3>
-      <div className="text-xs sm:text-sm text-gray-500">
-        {outlets.length} outlet{outlets.length !== 1 ? "s" : ""} in this zone
-      </div>
-    </div>
-  )}
-
-  {/* Outlet List */}
-  {loading ? (
-    <LoadingSkeleton />
-  ) : zoneNames.length === 0 ? (
-    <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg border border-gray-200">
-      <div className="text-base sm:text-lg text-gray-500 mb-2">No zones available</div>
-      <div className="text-xs sm:text-sm text-gray-400">
-        Check if outlets are properly assigned to zones
-      </div>
-    </div>
-  ) : (
-    <>
-      <div className="space-y-3">
-        {paginatedOutlets.map((outlet, index) => (
-          <div
-            key={index}
-            className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-sm transition"
-          >
-            <div>
-              <h4 className="text-sm sm:text-base font-semibold text-gray-900">
-                {outlet.name}
-              </h4>
-              <p className="text-xs sm:text-sm text-gray-600">
-                Code: {outlet.code} • {outlet.footfallType}
-              </p>
-            </div>
-
-            <div className="mt-2 sm:mt-0">
-              <span className="inline-block px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full text-center w-full sm:w-auto">
-                Active
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {outlets.length > itemsPerPage && (
-        <Pagination
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-        />
       )}
-    </>
-  )}
 
-  {/* Manage Button */}
-  <button
-    type="button"
-    className="w-full mt-4 sm:mt-6 text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 py-2.5 sm:py-3 border border-gray-300 rounded-lg hover:bg-blue-50 transition-colors duration-200 flex items-center justify-center gap-2"
-    aria-label="Manage all outlets"
-    onClick={() => handleNavigate('/zone')}
-  >
-    <span>Manage All Outlets</span>
-    <span>➡️</span>
-  </button>
+      {/* Outlet List */}
+      {loading ? (
+        <LoadingSkeleton />
+      ) : zoneNames.length === 0 ? (
+        <div className="text-center py-6 sm:py-8 bg-gray-50 rounded-lg border border-gray-200">
+          <div className="text-base sm:text-lg text-gray-500 mb-2">No zones available</div>
+          <div className="text-xs sm:text-sm text-gray-400">
+            Check if outlets are properly assigned to zones
+          </div>
+        </div>
+      ) : (
+        <>
+          <div className="space-y-3">
+            {paginatedOutlets.map((outlet, index) => (
+              <div
+                key={index}
+                className="flex flex-col sm:flex-row sm:items-center justify-between border border-gray-200 rounded-lg p-3 sm:p-4 hover:shadow-sm transition"
+              >
+                <div>
+                  <h4 className="text-sm sm:text-base font-semibold text-gray-900">
+                    {outlet.name}
+                  </h4>
+                  <p className="text-xs sm:text-sm text-gray-600">
+                    Code: {outlet.code} • {outlet.footfallType}
+                  </p>
+                </div>
 
-</div>
+                <div className="mt-2 sm:mt-0">
+                  <span className="inline-block px-3 py-1 text-xs font-medium bg-green-100 text-green-700 rounded-full text-center w-full sm:w-auto">
+                    Active
+                  </span>
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {outlets.length > itemsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
+          )}
+        </>
+      )}
+
+      {/* Manage Button */}
+      <button
+        type="button"
+        className="w-full mt-4 sm:mt-6 text-sm sm:text-base font-medium text-blue-600 hover:text-blue-800 py-2.5 sm:py-3 border border-gray-300 rounded-lg hover:bg-blue-50 transition-colors duration-200 flex items-center justify-center gap-2"
+        aria-label="Manage all outlets"
+        onClick={() => handleNavigate('/zone')}
+      >
+        <span>Manage All Outlets</span>
+        <span>➡️</span>
+      </button>
+
+    </div>
 
 
 

@@ -222,8 +222,8 @@ const TrainingComparisonCards = ({ data, zoneName }) => {
                   </div>
                   {trainingData.preTraining.metrics[metric.key] > 0 && (
                     <div className={`text-xs font-medium ${trainingData.postTraining.metrics[metric.key] > trainingData.preTraining.metrics[metric.key]
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                      ? 'text-green-600'
+                      : 'text-red-600'
                       }`}>
                       {getImprovement(trainingData.preTraining.metrics[metric.key], trainingData.postTraining.metrics[metric.key])}%
                     </div>
@@ -433,10 +433,10 @@ const CSAList = ({ data, zoneName }) => {
                 {/* Badge */}
                 <span
                   className={`inline-block mt-1 text-[10px] px-2 py-0.5 rounded-full ${csa.uploadType === "preTraining"
-                      ? "bg-blue-100 text-blue-800"
-                      : csa.uploadType === "postTraining"
-                        ? "bg-green-100 text-green-800"
-                        : "bg-gray-100 text-gray-800"
+                    ? "bg-blue-100 text-blue-800"
+                    : csa.uploadType === "postTraining"
+                      ? "bg-green-100 text-green-800"
+                      : "bg-gray-100 text-gray-800"
                     }`}
                 >
                   {csa.uploadType || "No Type"}
