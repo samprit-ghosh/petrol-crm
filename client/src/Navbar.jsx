@@ -104,7 +104,7 @@ export default function Navbar() {
                       onClick={() => handleNavigate("/reports")}
                       className="w-full text-left px-4 py-2 text-gray-700 hover:bg-emerald-50 hover:text-emerald-700 rounded-md"
                     >
-                      📘 Pre Data Training
+                      📘 Data Training
                     </button>
                     <button
                       onClick={() => handleNavigate("/comparision")}
@@ -204,13 +204,13 @@ export default function Navbar() {
                   </summary>
                   <div className="pl-12 flex flex-col gap-1 pb-2">
                     <button
-                      onClick={() => handleNavigate("/reports/pre")}
+                      onClick={() => handleNavigate("/reports")}
                       className="text-left py-1 text-sm text-gray-700 hover:text-emerald-700"
                     >
-                      📘 Pre Data Training
+                      📘 Data Training
                     </button>
                     <button
-                      onClick={() => handleNavigate("/reports/comparison")}
+                      onClick={() => handleNavigate("/comparison")}
                       className="text-left py-1 text-sm text-gray-700 hover:text-emerald-700"
                     >
                       📊 Comparison Report
